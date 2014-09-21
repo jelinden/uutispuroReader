@@ -1,0 +1,29 @@
+ul {
+    list-style: none;
+    clear: left;
+    display: block;
+}
+
+li {
+    float: left;
+    display: inline-block;
+    padding-right: 5px;
+}
+
+#status {
+    width: 120px;
+    margin: 10px;
+    display: block;
+}
+
+.first {
+    margin-bottom: 8px;
+}
+
+.img {
+    height: 80px;
+    min-width: 120px;
+    width: 120px;
+    display: block;
+    background-color: lightGray;
+}
