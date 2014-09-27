@@ -11,34 +11,48 @@ function retryOpeningWebSocket() {
             $('#status').html('Reconnected');
             clearInterval(connectionIntervalId);
         }
-    }, 5000);
+    }, 30000);
+}
+
+function url() {
+    var l = window.location;
+    return ((l.protocol === "https:") ? "wss://" : "ws://") + 
+        l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket";
 }
 
 function openWebSocket() {
+  if ("WebSocket" in window) {
     var $ul = $('#news-container');
-    ws = new WebSocket("ws://localhost:9100/websocket");
+    if (ws == undefined || ws == null) {
+        ws = new WebSocket(url());
+    }
 
-    ws.onmessage = function(event) {            
+    ws.onmessage = function(event) {
         var items = [];
         var obj = $.parseJSON(event.data);
         $.each(obj.d, function(count, rss) {
-            items.push("<ul>");
-            if(rss.Enclosure.Url != '') {
-                items.push("<li class='first'><img width='120' src='" + rss.Enclosure.Url + "'/></li>");
-            } else {
-                items.push("<li class='first'><span class='img'>&nbsp;</span></li>");
+
+            if($('#' + rss.id).html() == undefined) {
+                items.push("<ul id='" + rss.id + "'>");
+                if(rss.Enclosure.Url != '') {
+                    items.push("<li class='first'><img width='120' src='" + rss.Enclosure.Url + "'/></li>");
+                } else {
+                    items.push("<li class='first'><span class='img'>&nbsp;</span></li>");
+                }
+                items.push("<li>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + " " + rss.Source + "(" + rss.Category.Name + ")</li>");
+                items.push("<li><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></li>");
+                items.push("</ul>");
             }
-            items.push("<li>" + $.format.date(rss.Date, 'dd.MM. hh:mm') + " " + rss.Source + "(" + rss.Category.Name + ")</li>");
-            items.push("<li><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></li>");
-            items.push("</ul>");
         });
 
-        $ul.replaceWith(
-            $("<div/>", {
-                "class": "news-list",
-                html: items.join("")
-            })
-        );
+        if (!$.isEmptyObject(items)) {
+            var itemslength = items.length;
+            $ul.prepend(items.join(""));
+            
+            if ($ul.length > 30) {
+                $ul.find("ul:nth-last-child(-n+" + itemslength + ")").remove();
+            }
+        }
     };
     ws.onclose = function (event) {
         $('#status', {"class": "bg-warning"});           
@@ -53,16 +67,20 @@ function openWebSocket() {
         ws.send("ping");
         news();
     };
+    ws.onerror = function(event) {
+        $('#error').html('error ' + evt.toString());;
+    };
+  } else {
+    alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");    
+  }
 }
 
 function news() {
     newsIntervalId = setInterval(function() {
-        if (ws != undefined) {
+        if (ws != undefined && ws.readyState === ws.OPEN) {
     	    ws.send("ping");
-        } else {
-            clearInterval(newsIntervalId);
         }
-    },5000);
+    },20000);
 }
 
 $(function() {

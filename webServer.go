@@ -55,8 +55,8 @@ func main() {
 
 func getFeedTitles(session *mgo.Session) []rss.Item {
 	result := []rss.Item{}
-	c := session.DB("uutispuro").C("feed")
-	err := c.Find(bson.M{}).Sort("-date").Limit(20).All(&result)
+	c := session.DB("uutispuro").C("rss")
+	err := c.Find(bson.M{}).Sort("-date").Limit(30).All(&result)
 	if err != nil {
 		fmt.Println("Fatal error ", err.Error())
 	}
