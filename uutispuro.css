@@ -7,17 +7,18 @@ h1 {
 ul {
     list-style: none;
     clear: left;
-    display: inline-block;
-    margin-bottom: 10px;
     width: 100%;
     padding-left: 0px;
     margin-left: 40px;
+    margin-right: 40px;
+    height: 85px;
 }
 
 li {
     float: left;
     display: inline-block;
     padding-right: 5px;
+    padding-left: 2px;
 }
 
 #status {
@@ -44,4 +45,8 @@ img {
 
 .mint {
     background-color: #e5ffe5;
+}
+
+#news-container {
+    max-width:90%
 }
