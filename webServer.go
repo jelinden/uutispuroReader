@@ -3,6 +3,7 @@ package main
 import (
 	"code.google.com/p/go.net/websocket"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/jelinden/rssFetcher/rss"
 	"gopkg.in/mgo.v2"
@@ -11,7 +12,8 @@ import (
 	"net/http"
 )
 
-var session, error = mgo.Dial("localhost")
+var mongoAddress = flag.String("address", "localhost", "mongo address")
+var session *mgo.Session
 
 func wsHandler(ws *websocket.Conn) {
 
@@ -46,6 +48,11 @@ func wsHandler(ws *websocket.Conn) {
 }
 
 func main() {
+	flag.Parse()
+	fmt.Println("mongoAddress " + *mongoAddress)
+	if session, err = mgo.Dial(*mongoAddress); err != nil {
+		panic(err)
+	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	http.Handle("/websocket", websocket.Handler(wsHandler))
@@ -58,7 +65,7 @@ func getFeedTitles(session *mgo.Session) []rss.Item {
 	c := session.DB("uutispuro").C("rss")
 	err := c.Find(bson.M{}).Sort("-date").Limit(30).All(&result)
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
+		fmt.Println("Fatal error " + err.Error())
 	}
 	return result
 }
