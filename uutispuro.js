@@ -22,12 +22,12 @@ function url() {
 
 function openWebSocket() {
   if ("WebSocket" in window) {
-    var $ul = $('#news-container');
     if (ws == undefined || ws == null) {
         ws = new WebSocket(url());
     }
 
     ws.onmessage = function(event) {
+        var $ul = $('#news-container');
         var items = [];
         var mintbg = '';
         var obj = $.parseJSON(event.data);
