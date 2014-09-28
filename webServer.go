@@ -50,6 +50,7 @@ func wsHandler(ws *websocket.Conn) {
 func main() {
 	flag.Parse()
 	fmt.Println("mongoAddress " + *mongoAddress)
+	var err error
 	if session, err = mgo.Dial(*mongoAddress); err != nil {
 		panic(err)
 	}
