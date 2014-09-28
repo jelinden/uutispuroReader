@@ -29,13 +29,18 @@ function openWebSocket() {
 
     ws.onmessage = function(event) {
         var items = [];
+        var mintbg = '';
         var obj = $.parseJSON(event.data);
+        if ($('#news-container ul').length > 0) {
+            $('#news-container ul').removeClass("mint")
+            mintbg = 'mint';
+        }
         $.each(obj.d, function(count, rss) {
-
+        
             if($('#' + rss.id).html() == undefined) {
-                items.push("<ul id='" + rss.id + "'>");
+                items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first'><img width='120' src='" + rss.Enclosure.Url + "'/></li>");
+                    items.push("<li class='first'><img src='" + rss.Enclosure.Url + "'/></li>");
                 } else {
                     items.push("<li class='first'><span class='img'>&nbsp;</span></li>");
                 }
@@ -48,8 +53,8 @@ function openWebSocket() {
         if (!$.isEmptyObject(items)) {
             var itemslength = items.length;
             $ul.prepend(items.join(""));
-            
-            if ($ul.length > 30) {
+            $(".hiddenelement").fadeIn(3000);
+            if ($('#news-container ul').length > 30) {
                 $ul.find("ul:nth-last-child(-n+" + itemslength + ")").remove();
             }
         }
@@ -61,14 +66,14 @@ function openWebSocket() {
         retryOpeningWebSocket();
     };
     ws.onopen = function (event) {
-        $('#status', {"class": "bg-success"});
-        $('#status').html('Socket open');
+        $('#status', {"class": ""});
+        $('#status').html('');
         clearInterval(connectionIntervalId);
         ws.send("ping");
         news();
     };
     ws.onerror = function(event) {
-        $('#error').html('error ' + evt.toString());;
+        $('#error').html('error ' + evt.toString());
     };
   } else {
     alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");    
@@ -85,5 +90,5 @@ function news() {
 
 $(function() {
     openWebSocket();
-    $('body').click(function(e){ console.log("click " + e.target) })  
+    $('body').click(function(e){ /*console.log("click " + e.target)*/ })  
 });
