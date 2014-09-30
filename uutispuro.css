@@ -50,3 +50,35 @@ img {
 #news-container {
     max-width:90%
 }
+
+.source, .category, .date {
+    display: inline-block;
+    float: left;
+    margin-right: 5px;
+}
+
+.source {
+    background-color: #4cff4c;padding: 2px 8px 2px 8px;color: white;
+}
+.link {
+    display: block;
+    clear:left;
+    font-size:16px;
+}
+
+.Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
+.Naisetjamuoti{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}
+.Koti{background-color:#00008b;padding: 2px 8px 2px 8px;color: white;}
+.Elokuvat{background-color:#41c4b5;padding: 2px 8px 2px 8px;color: white;}
+.Kotimaa{background-color:#7eef86;padding: 2px 8px 2px 8px;color: white;}
+.Kulttuuri{background-color:#fd3737;padding: 2px 8px 2px 8px;color: white;}
+.Matkustus{background-color:#e29efe;padding: 2px 8px 2px 8px;color: white;}
+.Pelit{background-color:#fd772e;padding: 2px 8px 2px 8px;color: white;}
+.Ruoka{background-color:#a75140;padding: 2px 8px 2px 8px;color: white;}
+.Talous{background-color:#928d88;padding: 2px 8px 2px 8px;color: white;}
+.Terveys{background-color:#3cca72;padding: 2px 8px 2px 8px;color: white;}
+.Tiede{background-color:#000;padding: 2px 8px 2px 8px;color: white;}
+.Ulkomaat{background-color:#7deeda;padding: 2px 8px 2px 8px;color: white;}
+.Urheilu{background-color:#7d8aee;padding: 2px 8px 2px 8px;color: white;}
+.Viihde{background-color:#fd9be8;padding: 2px 8px 2px 8px;color: white;}
+.Blogit{background-color:#bb8a8a;padding: 2px 8px 2px 8px;color: white;}

@@ -34,8 +34,8 @@ function openWebSocket() {
         if ($('#news-container ul').length > 0) {
             mintbg = 'mint';
         }
-        $.each(obj.d, function(count, rss) {
-        
+        var rssItems = obj.d;
+        $.each(rssItems, function(count, rss) {
             if($('#' + rss.id).html() == undefined) {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 if(rss.Enclosure.Url != '') {
@@ -43,17 +43,17 @@ function openWebSocket() {
                 } else {
                     items.push("<li class='first'><span class='img'>&nbsp;</span></li>");
                 }
-                items.push("<li>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + " " + rss.Source + "(" + rss.Category.Name + ")</li>");
-                items.push("<li><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></li>");
+                items.push("<li><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.Name + "'>" + rss.Category.Name + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<div class='link'><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
         });
 
         if (!$.isEmptyObject(items)) {
-            $('#news-container ul').removeClass("mint")
+            $('#news-container ul').removeClass("mint");
             $ul.prepend(items.join(""));
             $(".hiddenelement").fadeIn(3000);
-            var containerLength = $('#news-container ul').length
+            var containerLength = $('#news-container ul').length;
             if (containerLength > 30) {
                 $ul.find("ul:nth-last-child(-n+" + (containerLength-30)  + ")").remove();
             }
@@ -73,7 +73,7 @@ function openWebSocket() {
         news();
     };
     ws.onerror = function(event) {
-        $('#error').html('error ' + evt.toString());
+        $('#error').html('error ' + event.toString());
     };
   } else {
     alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");    
