@@ -13,6 +13,7 @@ ul {
     margin-right: 40px;
     min-height: 78px;
     background-color:#fafafa;
+    clear:left;
 }
 .first{height:100%;float:left;}
 .second{padding-left:8px;margin-top:3px;overflow:hidden;height:100%;}
