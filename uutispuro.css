@@ -1,22 +1,22 @@
 h1 {
     margin-top: 30px;
-    margin-left: 40px;
+    margin-left: 20px;
     margin-bottom: 40px;
 }
 
 ul {
     list-style: none;
-    clear: left;
+    display: block;
     width: 100%;
     padding-left: 0px;
-    margin-left: 40px;
+    margin-left: 20px;
     margin-right: 40px;
-    height: 85px;
+    min-height: 78px;
+    background-color:#fafafa;
 }
-
+.first{height:100%;float:left;}
+.second{padding-left:8px;margin-top:3px;overflow:hidden;height:100%;}
 li {
-    float: left;
-    display: inline-block;
     padding-right: 5px;
     padding-left: 2px;
 }
@@ -28,7 +28,7 @@ li {
 }
 
 .img {
-    height: 80px;
+    min-height: 78px;
     min-width: 140px;
     width: 140px;
     display: block;
@@ -53,8 +53,8 @@ img {
 
 .source, .category, .date {
     display: inline-block;
-    float: left;
-    margin-right: 5px;
+    margin-right: 2px;
+    margin-top: 2px;
 }
 
 .source {
@@ -62,10 +62,13 @@ img {
 }
 .link {
     display: block;
-    clear:left;
     font-size:16px;
+    height:100%;
 }
 
+.date {
+    padding-left: 3px;
+}
 .Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
 .Naisetjamuoti{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}
 .Koti{background-color:#00008b;padding: 2px 8px 2px 8px;color: white;}

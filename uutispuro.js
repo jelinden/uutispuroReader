@@ -39,11 +39,11 @@ function openWebSocket() {
             if($('#' + rss.id).html() == undefined) {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first'><img src='" + rss.Enclosure.Url + "'/></li>");
+                    items.push("<li class='first img'><img src='" + rss.Enclosure.Url + "'/></li>");
                 } else {
-                    items.push("<li class='first'><span class='img'>&nbsp;</span></li>");
+                    items.push("<li class='first img'>&nbsp;</li>");
                 }
-                items.push("<li><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.Name + "'>" + rss.Category.Name + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.Name + "'>" + rss.Category.Name + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='link'><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
