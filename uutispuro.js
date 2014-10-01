@@ -2,10 +2,14 @@
 var ws;
 var newsIntervalId;
 var connectionIntervalId;
-
+var connectionRetryCounter = 1;
 function retryOpeningWebSocket() {
     $('#status').html('Trying to reconnect');
     connectionIntervalId = setInterval(function() {
+        if (connectionRetryCounter == 3) {
+            location.reload(true);
+        }
+        connectionRetryCounter +=1;
         openWebSocket();
         if (ws != undefined && ws.readyState === ws.OPEN) {
             $('#status').html('Reconnected');
@@ -43,7 +47,8 @@ function openWebSocket() {
                 } else {
                     items.push("<li class='first img'>&nbsp;</li>");
                 }
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.Name + "'>" + rss.Category.Name + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + category + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='link'><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
@@ -52,10 +57,10 @@ function openWebSocket() {
         if (!$.isEmptyObject(items)) {
             $('#news-container ul').removeClass("mint");
             $ul.prepend(items.join(""));
-            $(".hiddenelement").fadeIn(3000);
+            $(".hiddenelement").fadeIn(2500);
             var containerLength = $('#news-container ul').length;
-            if (containerLength > 30) {
-                $ul.find("ul:nth-last-child(-n+" + (containerLength-30)  + ")").remove();
+            if (containerLength > 40) {
+                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
             }
         }
     };
