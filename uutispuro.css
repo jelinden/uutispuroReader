@@ -37,8 +37,8 @@ li {
 }
 
 img {
-    max-width: 140px;
-    max-height:78px;
+    width: 140px;
+    overflow:hidden;
 }
 
 .hiddenelement {
