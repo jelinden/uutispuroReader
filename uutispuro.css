@@ -34,11 +34,11 @@ li {
     width: 140px;
     display: block;
     background-color: #f2e5ff;
+    overflow:hidden;
 }
 
 img {
     width: 140px;
-    overflow:hidden;
 }
 
 .hiddenelement {
