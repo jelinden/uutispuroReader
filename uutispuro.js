@@ -21,7 +21,7 @@ function retryOpeningWebSocket() {
 function url() {
     var l = window.location;
     return ((l.protocol === "https:") ? "wss://" : "ws://") + 
-        l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket";
+        l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket/";
 }
 
 function openWebSocket() {
@@ -60,7 +60,7 @@ function openWebSocket() {
             $(".hiddenelement").fadeIn(2500);
             var containerLength = $('#news-container ul').length;
             if (containerLength > 40) {
-                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
+                $ul.find("ul:nth-last-child(-n+" + (containerLength-39)  + ")").remove();
             }
         }
     };
