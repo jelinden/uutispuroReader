@@ -61,8 +61,8 @@ func main() {
 	http.Handle("/websocket/sv/", websocket.Handler(wsHandler))
 	http.Handle("/", http.FileServer(http.Dir(".")))
 	http.Handle("/fi/", http.StripPrefix("/fi/", http.FileServer(http.Dir("."))))
-	http.Handle("/sv/", http.StripPrefix("/en/", http.FileServer(http.Dir("."))))
-	http.Handle("/en/", http.StripPrefix("/sv/", http.FileServer(http.Dir("."))))
+	http.Handle("/en/", http.StripPrefix("/en/", http.FileServer(http.Dir("."))))
+	http.Handle("/sv/", http.StripPrefix("/sv/", http.FileServer(http.Dir("."))))
 	http.ListenAndServe(":9100", nil)
 }
 
