@@ -15,13 +15,13 @@ function retryOpeningWebSocket() {
             $('#status').html('Reconnected');
             clearInterval(connectionIntervalId);
         }
-    }, 30000);
+    }, 1500);
 }
 
 function url() {
     var l = window.location;
     return ((l.protocol === "https:") ? "wss://" : "ws://") + 
-        l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket";
+        l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket" + l.pathname;
 }
 
 function openWebSocket() {
@@ -43,13 +43,13 @@ function openWebSocket() {
             if($('#' + rss.id).html() == undefined) {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first img'><img src='" + rss.Enclosure.Url + "'/></li>");
+                    items.push("<li class='first'><div class='img'><img src='" + rss.Enclosure.Url + "'/></div></li>");
                 } else {
-                    items.push("<li class='first img'>&nbsp;</li>");
+                    items.push("<li class='first'><div class='img'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
                 items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + category + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
-                items.push("<div class='link'><a target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
+                items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
         });
@@ -60,7 +60,7 @@ function openWebSocket() {
             $(".hiddenelement").fadeIn(2500);
             var containerLength = $('#news-container ul').length;
             if (containerLength > 40) {
-                $ul.find("ul:nth-last-child(-n+" + (containerLength-39)  + ")").remove();
+                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
             }
         }
     };
@@ -95,5 +95,9 @@ function news() {
 
 $(function() {
     openWebSocket();
-    $('body').click(function(e){ /*console.log("click " + e.target)*/ })  
+    $(document).delegate('.link a', 'click', function(e) {
+        if (ws != undefined && ws.readyState === ws.OPEN) {
+            ws.send("c/" + e.target.id);
+        }
+    })    
 });

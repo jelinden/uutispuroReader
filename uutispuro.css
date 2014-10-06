@@ -6,17 +6,18 @@ h1 {
 
 ul {
     list-style: none;
-    display: block;
+    display: inline-block;
     width: 100%;
+    max-width: 450px;
     padding-left: 0px;
     margin-left: 20px;
-    margin-right: 40px;
-    min-height: 78px;
+    margin-right: 0px;
+    height: 105px;
     background-color:#fafafa;
-    clear:left;
+    float:left;
 }
 .first{height:100%;float:left;}
-.second{padding-left:8px;margin-top:3px;overflow:hidden;height:100%;}
+.second{padding-left:8px;margin-top:3px;height:100%;overflow:hidden;}
 li {
     padding-right: 5px;
     padding-left: 2px;
@@ -29,16 +30,18 @@ li {
 }
 
 .img {
-    height: 78px;
+    height: 105px;
     min-width: 140px;
     width: 140px;
-    display: block;
-    background-color: #f2e5ff;
     overflow:hidden;
+    display: table-cell;
+    vertical-align: middle;
+    background-color: black;
 }
 
 img {
     width: 140px;
+    vertical-align: middle;
 }
 
 .hiddenelement {
@@ -50,7 +53,7 @@ img {
 }
 
 #news-container {
-    max-width:90%;
+    max-width:99%;
     height: 100%;
 }
 
@@ -67,6 +70,7 @@ img {
     display: block;
     font-size:16px;
     height:100%;
+    word-wrap: break-word;
 }
 
 .date {
