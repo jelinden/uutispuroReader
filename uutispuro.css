@@ -37,6 +37,9 @@ li {
     overflow:hidden;
     display: table-cell;
     vertical-align: middle;
+}
+
+.black {
     background-color: black;
 }
 

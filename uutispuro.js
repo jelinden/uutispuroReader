@@ -42,10 +42,12 @@ function openWebSocket() {
         $.each(rssItems, function(count, rss) {
             if($('#' + rss.id).html() == undefined) {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
+                var blackBackground = rss.Source==='Turun Sanomat'?'':'black';
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first'><div class='img'><img src='" + rss.Enclosure.Url + "'/></div></li>");
+                    
+                    items.push("<li class='first'><div class='img " + blackBackground + "'><img src='" + rss.Enclosure.Url + "'/></div></li>");
                 } else {
-                    items.push("<li class='first'><div class='img'>&nbsp;</div></li>");
+                    items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
                 items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + category + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
