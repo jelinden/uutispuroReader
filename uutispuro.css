@@ -1,6 +1,6 @@
 h1 {
     margin-top: 30px;
-    margin-left: 20px;
+    margin-left: 5px;
     margin-bottom: 40px;
 }
 
@@ -10,17 +10,18 @@ ul {
     width: 100%;
     max-width: 450px;
     padding-left: 0px;
-    margin-left: 20px;
-    margin-right: 0px;
-    height: 105px;
+    padding-right: 3px;
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 117px;
     background-color:#fafafa;
     float:left;
 }
 .first{height:100%;float:left;}
 .second{padding-left:8px;margin-top:3px;height:100%;overflow:hidden;}
 li {
-    padding-right: 5px;
-    padding-left: 2px;
+    padding-right: 2px;
+    padding-left: 1px;
 }
 
 #status {
@@ -30,9 +31,9 @@ li {
 }
 
 .img {
-    height: 105px;
-    min-width: 140px;
-    width: 140px;
+    height: 117px;
+    min-width: 130px;
+    width: 130px;
     overflow:hidden;
     display: table-cell;
     vertical-align: middle;
@@ -40,7 +41,7 @@ li {
 }
 
 img {
-    width: 140px;
+    width: 130px;
     vertical-align: middle;
 }
 
