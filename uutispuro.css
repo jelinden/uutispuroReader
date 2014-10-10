@@ -30,6 +30,11 @@ li {
     display: block;
 }
 
+@media screen and (max-width: 480px) {
+    .img {
+        display: none !important;
+    }
+}
 .img {
     height: 117px;
     min-width: 130px;
