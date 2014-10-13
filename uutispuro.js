@@ -24,6 +24,48 @@ function url() {
         l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket" + l.pathname;
 }
 
+function categoryName(lang, cat) {
+    if (lang === '/en/') {
+        if (cat === 'IT ja media') {
+            return 'Digital media';
+        } else if (cat === 'TV ja elokuvat') {
+            return 'TV and movies';
+        } else if (cat === 'Asuminen') {
+            return 'Home and living';
+        } else if (cat === 'Kotimaa') {
+            return 'Domestic';
+        } else if (cat === 'Kulttuuri') {
+            return 'Culture';
+        } else if (cat === 'Matkustus') {
+            return 'Travel';
+        } else if (cat === 'Pelit') {
+            return 'Games';
+        } else if (cat === 'Ruoka') {
+            return 'Food';
+        } else if (cat === 'Talous') {
+            return 'Economy';
+        } else if (cat === 'Terveys') {
+            return 'Health';
+        } else if (cat === 'Tiede') {
+            return 'Science';
+        } else if (cat === 'Ulkomaat') {
+            return 'Foreign';
+        } else if (cat === 'Urheilu') {
+            return 'Sports';
+        } else if (cat === 'Viihde') {
+            return 'Entertainment';
+        } else if (cat === 'Blogit') {
+            return 'Blogs';
+        } else if (cat === 'Naiset ja muoti') {
+            return 'Women and fashion';
+        }
+    } else if (lang === '/sv/') {
+        
+    } else {
+        return cat;
+    }
+}
+
 function openWebSocket() {
   if ("WebSocket" in window) {
     if (ws == undefined || ws == null) {
@@ -50,7 +92,7 @@ function openWebSocket() {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + category + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
