@@ -28,6 +28,8 @@ function categoryName(lang, cat) {
     if (lang === '/en/') {
         if (cat === 'IT ja media') {
             return 'Digital media';
+        } else if (cat === 'Digi') {
+            return 'Digital media';
         } else if (cat === 'TV ja elokuvat') {
             return 'TV and movies';
         } else if (cat === 'Asuminen') {
