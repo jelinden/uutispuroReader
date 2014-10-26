@@ -20,8 +20,78 @@ function retryOpeningWebSocket() {
 
 function url() {
     var l = window.location;
-    return ((l.protocol === "https:") ? "wss://" : "ws://") + 
+    return ((l.protocol === "https:") ? "wss://" : "ws://") +
         l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + "/websocket" + l.pathname;
+}
+
+function openWebSocket() {
+  if ("WebSocket" in window) {
+    if (ws == undefined || ws == null) {
+        ws = new WebSocket(url());
+    }
+
+    ws.onmessage = function(event) {
+        var $ul = $('#news-container');
+        var items = [];
+        var mintbg = '';
+        var obj = $.parseJSON(event.data);
+        if ($('#news-container ul').length > 0) {
+            mintbg = 'mint';
+        }
+        var rssItems = obj.d;
+        $.each(rssItems, function(count, rss) {
+            if($('#' + rss.id).html() == undefined) {
+                items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
+                var blackBackground = (rss.Source==='Turun Sanomat'||rss.Source==='Telegraph')?'':'black';
+                if(rss.Enclosure.Url != '') {
+
+                    items.push("<li class='first'><div class='img " + blackBackground + "'><img src='" + rss.Enclosure.Url + "'/></div></li>");
+                } else {
+                    items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
+                }
+                var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
+                items.push("</ul>");
+            }
+        });
+        if (!$.isEmptyObject(items)) {
+            $('#news-container ul').removeClass("mint");
+            $ul.prepend(items.join(""));
+            $(".hiddenelement").fadeIn(2500);
+            var containerLength = $('#news-container ul').length;
+            if (containerLength > 40) {
+                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
+            }
+        }
+    };
+    ws.onclose = function (event) {
+        $('#status', {"class": "bg-warning"});
+        $('#status').html('Socket closed');
+        clearInterval(newsIntervalId);
+        retryOpeningWebSocket();
+    };
+    ws.onopen = function (event) {
+        $('#status', {"class": ""});
+        $('#status').html('');
+        clearInterval(connectionIntervalId);
+        ws.send("ping");
+        news();
+    };
+    ws.onerror = function(event) {
+
+    };
+  } else {
+    alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");
+  }
+}
+
+function news() {
+    newsIntervalId = setInterval(function() {
+        if (ws != undefined && ws.readyState === ws.OPEN) {
+    	    ws.send("ping");
+        }
+    },20000);
 }
 
 function categoryName(lang, cat) {
@@ -62,80 +132,10 @@ function categoryName(lang, cat) {
             return 'Women and fashion';
         }
     } else if (lang === '/sv/') {
-        
+
     } else {
         return cat;
     }
-}
-
-function openWebSocket() {
-  if ("WebSocket" in window) {
-    if (ws == undefined || ws == null) {
-        ws = new WebSocket(url());
-    }
-
-    ws.onmessage = function(event) {
-        var $ul = $('#news-container');
-        var items = [];
-        var mintbg = '';
-        var obj = $.parseJSON(event.data);
-        if ($('#news-container ul').length > 0) {
-            mintbg = 'mint';
-        }
-        var rssItems = obj.d;
-        $.each(rssItems, function(count, rss) {
-            if($('#' + rss.id).html() == undefined) {
-                items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
-                var blackBackground = rss.Source==='Turun Sanomat'?'':'black';
-                if(rss.Enclosure.Url != '') {
-                    
-                    items.push("<li class='first'><div class='img " + blackBackground + "'><img src='" + rss.Enclosure.Url + "'/></div></li>");
-                } else {
-                    items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
-                }
-                var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
-                items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
-                items.push("</ul>");
-            }
-        });
-        if (!$.isEmptyObject(items)) {
-            $('#news-container ul').removeClass("mint");
-            $ul.prepend(items.join(""));
-            $(".hiddenelement").fadeIn(2500);
-            var containerLength = $('#news-container ul').length;
-            if (containerLength > 40) {
-                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
-            }
-        }
-    };
-    ws.onclose = function (event) {
-        $('#status', {"class": "bg-warning"});           
-        $('#status').html('Socket closed');
-        clearInterval(newsIntervalId);
-        retryOpeningWebSocket();
-    };
-    ws.onopen = function (event) {
-        $('#status', {"class": ""});
-        $('#status').html('');
-        clearInterval(connectionIntervalId);
-        ws.send("ping");
-        news();
-    };
-    ws.onerror = function(event) {
-        $('#error').html('error ' + event.toString());
-    };
-  } else {
-    alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");    
-  }
-}
-
-function news() {
-    newsIntervalId = setInterval(function() {
-        if (ws != undefined && ws.readyState === ws.OPEN) {
-    	    ws.send("ping");
-        }
-    },20000);
 }
 
 $(function() {
@@ -144,7 +144,7 @@ $(function() {
         if (ws != undefined && ws.readyState === ws.OPEN) {
             ws.send("c/" + e.target.id);
         }
-    })    
+    })
 });
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

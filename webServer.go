@@ -1,17 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"code.google.com/p/go.net/websocket"
+	"compress/gzip"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"github.com/jelinden/rssFetcher/rss"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 )
 
 var mongoAddress = flag.String("address", "localhost", "mongo address")
@@ -19,30 +21,30 @@ var session *mgo.Session
 
 func wsHandler(ws *websocket.Conn) {
 	defer func() {
-		fmt.Printf(time.Now().Format("2006-01-02 15:04:05 -0700") + " Connection closed\n")
+		log.Printf(" Connection closed\n")
 		ws.Close()
 	}()
 	msg := make([]byte, 1024)
 	for {
 		n, err := ws.Read(msg)
 		if err != nil {
-			fmt.Printf("Connection closed %s\n", err)
+			log.Printf("Connection closed %s\n", err)
 			break
 		}
-		fmt.Printf(time.Now().Format("2006-01-02 15:04:05 -0700")+" Receive: %s, %s\n", msg[:n], ws.Request().RemoteAddr)
+		log.Println(ws.Request().RequestURI)
 		if strings.HasPrefix(string(msg[:n]), "c/") {
 			saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
-		} else if strings.Contains(ws.Request().RequestURI, "/fi/") {
+		} else if strings.HasSuffix(ws.Request().RequestURI, "/fi/") {
 			fetchRssItems(ws, 1)
-		} else if strings.Contains(ws.Request().RequestURI, "/en/") {
+		} else if strings.HasSuffix(ws.Request().RequestURI, "/en/") {
 			fetchRssItems(ws, 2)
-		} else if strings.Contains(ws.Request().RequestURI, "/sv/") {
+		} else if strings.HasSuffix(ws.Request().RequestURI, "/sv/") {
 			fetchRssItems(ws, 3)
-		} else {
+		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
 			fetchRssItems(ws, 1)
 		}
 	}
-	fmt.Printf(time.Now().Format("2006-01-02 15:04:05 -0700") + " => closing connection\n")
+	log.Printf(" => closing connection\n")
 	ws.Close()
 }
 
@@ -56,13 +58,7 @@ func main() {
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
 	http.Handle("/websocket/", websocket.Handler(wsHandler))
-	http.Handle("/websocket/fi/", websocket.Handler(wsHandler))
-	http.Handle("/websocket/en/", websocket.Handler(wsHandler))
-	http.Handle("/websocket/sv/", websocket.Handler(wsHandler))
-	http.Handle("/", http.FileServer(http.Dir(".")))
-	http.Handle("/fi/", http.StripPrefix("/fi/", http.FileServer(http.Dir("."))))
-	http.Handle("/en/", http.StripPrefix("/en/", http.FileServer(http.Dir("."))))
-	http.Handle("/sv/", http.StripPrefix("/sv/", http.FileServer(http.Dir("."))))
+	http.HandleFunc("/", rootHandler)
 	http.ListenAndServe(":9100", nil)
 }
 
@@ -88,8 +84,55 @@ func saveClick(id string) {
 func fetchRssItems(ws *websocket.Conn, lang int) {
 	doc := map[string]interface{}{"d": getFeedTitles(session, lang)}
 	if data, err := json.Marshal(doc); err != nil {
-		log.Printf(time.Now().Format("2006-01-02 15:04:05 -0700")+" Error marshalling json: %v", err)
+		log.Printf("Error marshalling json: %v", err)
 	} else {
 		ws.Write(data)
 	}
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	log.Println("uri " + r.RequestURI)
+	var content []byte = nil
+	if strings.EqualFold(r.RequestURI, "/") || strings.EqualFold(r.RequestURI, "/fi/") || strings.EqualFold(r.RequestURI, "/en/") || strings.EqualFold(r.RequestURI, "/sv/") {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("Content-Encoding", "gzip")
+		content = openFileGzipped("index.html")
+	} else if strings.EqualFold(r.RequestURI, "/uutispuro.css") {
+		w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		w.Header().Set("Content-Encoding", "gzip")
+		content = openFileGzipped("uutispuro.css")
+	} else if strings.EqualFold(r.RequestURI, "/uutispuro.js") {
+		w.Header().Set("Content-Type", "application/javascript")
+		w.Header().Set("Content-Encoding", "gzip")
+		content = openFileGzipped("uutispuro.js")
+	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
+		content = openFile("img/favicon.ico")
+	} else if strings.HasSuffix(r.RequestURI, ".png") {
+		w.Header().Set("Content-Type", "image/png")
+		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
+	} else if strings.HasSuffix(r.RequestURI, ".gif") {
+		w.Header().Set("Content-Type", "image/gif")
+		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
+	}
+	fmt.Fprintf(w, "%s", content)
+}
+
+func openFile(fileName string) []byte {
+	content, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Println("Could not open file.", err)
+	}
+	return content
+}
+
+func openFileGzipped(fileName string) []byte {
+	content, err := ioutil.ReadFile(fileName)
+	var b bytes.Buffer
+	w := gzip.NewWriter(&b)
+	w.Write(content)
+	w.Close()
+	if err != nil {
+		log.Println("Could not open file.", err)
+	}
+	return b.Bytes()
 }
