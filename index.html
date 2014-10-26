@@ -3,7 +3,6 @@
     <head>
         <meta charset="UTF-8" />
         <title>Uusimmat uutiset - Uutispuro</title>
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
         <link rel="stylesheet" href="/uutispuro.css">
         <link rel="apple-touch-icon" sizes="57x57" href="/img/apple-touch-icon-57x57.png">
         <link rel="apple-touch-icon" sizes="114x114" href="/img/apple-touch-icon-114x114.png">
@@ -29,6 +28,17 @@
         <div id="news-container"></div>
         <div id="error"></div>
     </body>
+    <script>
+      var cb = function() {
+        var l = document.createElement('link'); l.rel = 'stylesheet';
+        l.href = '//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css';
+        var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+      };
+      var raf = requestAnimationFrame || mozRequestAnimationFrame ||
+          webkitRequestAnimationFrame || msRequestAnimationFrame;
+      if (raf) raf(cb);
+      else window.addEventListener('load', cb);
+    </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
     <script src="/uutispuro.js"></script>
