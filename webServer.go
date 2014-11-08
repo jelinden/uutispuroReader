@@ -106,10 +106,12 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFileGzipped("uutispuro.css")
 	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFileGzipped("uutispuro.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		content = openFile("img/favicon.ico")
@@ -152,6 +154,7 @@ func htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
 }
 
 func htmlTemplate(w http.ResponseWriter, r *http.Request, items []rss.Item) {
+
 	t, err := template.ParseFiles("index.html")
 	if err != nil {
 		log.Printf("Template gave: %s", err)

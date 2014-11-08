@@ -3,7 +3,6 @@
     <head>
         <meta charset="UTF-8" />
         <title>Uusimmat uutiset - Uutispuro</title>
-        <link rel="stylesheet" href="/uutispuro.css">
         <link rel="apple-touch-icon" sizes="57x57" href="/img/apple-touch-icon-57x57.png">
         <link rel="apple-touch-icon" sizes="114x114" href="/img/apple-touch-icon-114x114.png">
         <link rel="apple-touch-icon" sizes="72x72" href="/img/apple-touch-icon-72x72.png">
@@ -21,7 +20,7 @@
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
-        <style>a{color:#428bca;text-decoration: none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}</style>
+        <style>a{color:#428bca;text-decoration:none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}</style>
         
     </head>
     <body>
@@ -32,7 +31,10 @@
             
             {{ range . }}
             <ul>
-                <li class="first"><div class="img black"><img src="{{ .Enclosure.Url }}"/></div></li>
+                <li class="first">
+                    {{if eq .Source "Turun Sanomat"}}<div class="img"><img src="{{ .Enclosure.Url }}"/></div>
+                    {{else}}<div class="img black"><img src="{{ .Enclosure.Url }}"/></div>{{end}}
+                </li>
                 <li class="second">
                     <div class="source">{{ .Source }}</div>
                     <div class="category {{ .Category.StyleName }}">{{ .Category.Name }}</div><div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
@@ -45,15 +47,26 @@
         <div id="error"></div>
     </body>
     <script>
-      var cb = function() {
+      var bootstrap = function() {
         var l = document.createElement('link'); l.rel = 'stylesheet';
         l.href = '//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css';
         var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
       };
       var raf = requestAnimationFrame || mozRequestAnimationFrame ||
           webkitRequestAnimationFrame || msRequestAnimationFrame;
-      if (raf) raf(cb);
-      else window.addEventListener('load', cb);
+      if (raf) raf(bootstrap);
+      else window.addEventListener('load', bootstrap);
+    </script>
+    <script>
+      var css = function() {
+        var l = document.createElement('link'); l.rel = 'stylesheet';
+        l.href = 'http://beta.uutispuro.fi/uutispuro.css';
+        var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
+      };
+      var rafC = requestAnimationFrame || mozRequestAnimationFrame ||
+          webkitRequestAnimationFrame || msRequestAnimationFrame;
+      if (rafC) rafC(css);
+      else window.addEventListener('load', css);
     </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
