@@ -35,7 +35,7 @@ function openWebSocket() {
         var items = [];
         var mintbg = '';
         var obj = $.parseJSON(event.data);
-        if ($('#news-container ul').length > 0) {
+        if ($('#news-container ul').length > 0 && $('#news-container ul').length != 10) {
             mintbg = 'mint';
         }
         var rssItems = obj.d;
@@ -49,20 +49,27 @@ function openWebSocket() {
                 } else {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
-                var category = rss.Category.Name == 'IT ja media'?'Digi':rss.Category.Name
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + category + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                var category = rss.Category.Name;
+
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
         });
         if (!$.isEmptyObject(items)) {
             $('#news-container ul').removeClass("mint");
-            $ul.prepend(items.join(""));
+            if ($ul.find("ul").length == 10) {
+                $ul.after(items.join(""));
+            } else {
+                $ul.prepend(items.join(""));
+            }
             $(".hiddenelement").fadeIn(2500);
+            
             var containerLength = $('#news-container ul').length;
             if (containerLength > 40) {
                 $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
             }
+            $('#news-container ul').removeClass("hiddenelement");
         }
     };
     ws.onclose = function (event) {

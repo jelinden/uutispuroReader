@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"text/template"
 )
 
 var mongoAddress = flag.String("address", "localhost", "mongo address")
@@ -41,7 +42,7 @@ func wsHandler(ws *websocket.Conn) {
 		} else if strings.HasSuffix(ws.Request().RequestURI, "/sv/") {
 			fetchRssItems(ws, 3)
 		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
-			fetchRssItems(ws, 1)
+			fetchRssItems(ws, 2)
 		}
 	}
 	log.Printf(" => closing connection\n")
@@ -53,27 +54,32 @@ func main() {
 	fmt.Println("mongoAddress " + *mongoAddress)
 	var err error
 	if session, err = mgo.Dial(*mongoAddress); err != nil {
+		fmt.Println("closing up, no connection to mongo")
 		panic(err)
 	}
 	defer session.Close()
 	session.SetMode(mgo.Monotonic, true)
+	fmt.Println("adding routes")
 	http.Handle("/websocket/", websocket.Handler(wsHandler))
 	http.HandleFunc("/", rootHandler)
+	fmt.Println("starting web server")
 	http.ListenAndServe(":9100", nil)
 }
 
-func getFeedTitles(session *mgo.Session, language int) []rss.Item {
+func getFeedTitles(session *mgo.Session, language int, limit int) []rss.Item {
 	result := []rss.Item{}
-	c := session.DB("uutispuro").C("rss")
-	err := c.Find(bson.M{"language": language}).Sort("-date").Limit(40).All(&result)
+	s := session.Clone()
+	c := s.DB("uutispuro").C("rss")
+	err := c.Find(bson.M{"language": language}).Sort("-date").Limit(limit).All(&result)
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
-	return result
+	return addCategoryShowNames(result)
 }
 
 func saveClick(id string) {
-	c := session.DB("uutispuro").C("rss")
+	s := session.Clone()
+	c := s.DB("uutispuro").C("rss")
 	type M map[string]interface{}
 	_, err := c.UpsertId(bson.ObjectIdHex(id), M{"$inc": M{"clicks": 1}})
 	if err != nil {
@@ -82,7 +88,7 @@ func saveClick(id string) {
 }
 
 func fetchRssItems(ws *websocket.Conn, lang int) {
-	doc := map[string]interface{}{"d": getFeedTitles(session, lang)}
+	doc := map[string]interface{}{"d": getFeedTitles(session, lang, 40)}
 	if data, err := json.Marshal(doc); err != nil {
 		log.Printf("Error marshalling json: %v", err)
 	} else {
@@ -93,15 +99,15 @@ func fetchRssItems(ws *websocket.Conn, lang int) {
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("uri " + r.RequestURI)
 	var content []byte = nil
-	if strings.EqualFold(r.RequestURI, "/") || strings.EqualFold(r.RequestURI, "/fi/") || strings.EqualFold(r.RequestURI, "/en/") || strings.EqualFold(r.RequestURI, "/sv/") {
-		w.Header().Set("Content-Type", "text/html")
-		w.Header().Set("Content-Encoding", "gzip")
-		content = openFileGzipped("index.html")
-	} else if strings.EqualFold(r.RequestURI, "/uutispuro.css") {
+	if strings.HasPrefix(r.RequestURI, "/fi") {
+		htmlTemplateFi(w, r)
+	} else if strings.EqualFold(r.RequestURI, "/") || strings.HasPrefix(r.RequestURI, "/en") {
+		htmlTemplateEn(w, r)
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
 		content = openFileGzipped("uutispuro.css")
-	} else if strings.EqualFold(r.RequestURI, "/uutispuro.js") {
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		content = openFileGzipped("uutispuro.js")
@@ -135,4 +141,49 @@ func openFileGzipped(fileName string) []byte {
 		log.Println("Could not open file.", err)
 	}
 	return b.Bytes()
+}
+
+func htmlTemplateEn(w http.ResponseWriter, r *http.Request) {
+	htmlTemplate(w, r, getFeedTitles(session, 2, 10))
+}
+
+func htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
+	htmlTemplate(w, r, getFeedTitles(session, 1, 10))
+}
+
+func htmlTemplate(w http.ResponseWriter, r *http.Request, items []rss.Item) {
+	t, err := template.ParseFiles("index.html")
+	if err != nil {
+		log.Printf("Template gave: %s", err)
+	}
+
+	cangzip := strings.Index(r.Header.Get("Accept-Encoding"), "gzip") > -1
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if cangzip {
+		gw := gzip.NewWriter(w)
+		w.Header().Set("Vary", "Accept-Encoding")
+		w.Header().Set("Content-Encoding", "gzip")
+		t.Execute(gw, items)
+		gw.Close()
+	} else {
+		t.Execute(w, items)
+	}
+}
+
+func addCategoryShowNames(items []rss.Item) []rss.Item {
+	for i := range items {
+		if items[i].Category.Name == "Asuminen" {
+			items[i].Category.StyleName = "Koti"
+		} else if items[i].Category.Name == "IT ja media" {
+			items[i].Category.StyleName = "Digi"
+		} else if items[i].Category.Name == "Naiset ja muoti" {
+			items[i].Category.StyleName = "Naisetjamuoti"
+		} else if items[i].Category.Name == "TV ja elokuvat" {
+			items[i].Category.StyleName = "Elokuvat"
+		} else {
+			items[i].Category.StyleName = items[i].Category.Name
+		}
+
+	}
+	return items
 }

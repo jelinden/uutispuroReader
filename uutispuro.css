@@ -5,7 +5,7 @@ body {
 
 h1 {
     margin: 0px;
-    margin-top: 30px;
+    margin-top: 20px;
     margin-left: 5px; 
     margin-bottom: 40px;
     padding: 0px;
@@ -75,6 +75,7 @@ img {
 #news-container {
     max-width:99%;
     height: 100%;
+    clear:left;
 }
 
 .source, .category, .date {
@@ -95,6 +96,10 @@ img {
 
 .date {
     padding-left: 3px;
+}
+.language {
+    margin-left: 5px;
+    margin-top: 5px;
 }
 .Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
 .Naisetjamuoti{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}

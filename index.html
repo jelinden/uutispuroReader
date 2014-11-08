@@ -21,11 +21,27 @@
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
+        <style>a{color:#428bca;text-decoration: none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}</style>
+        
     </head>
     <body>
-        <h1>Uutispuro</h1>
+        <div class="language"><a href="/fi/">Suomi</a> | <a href="/en/">English</a></div>
+        <h1>Uutispuro</h1>    
         <div id="status"></div>
-        <div id="news-container"></div>
+        <div id="news-container">
+            
+            {{ range . }}
+            <ul>
+                <li class="first"><div class="img black"><img src="{{ .Enclosure.Url }}"/></div></li>
+                <li class="second">
+                    <div class="source">{{ .Source }}</div>
+                    <div class="category {{ .Category.StyleName }}">{{ .Category.Name }}</div><div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
+                    <div class="link"><a id="{{ .Id.Hex }}" target="_blank" href="{{ .Link }}">{{ .Title }}</a></div>
+                </li>
+            </ul>
+            {{end}}
+                            
+        </div>
         <div id="error"></div>
     </body>
     <script>
