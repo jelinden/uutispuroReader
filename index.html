@@ -47,6 +47,9 @@
         <div id="error"></div>
     </body>
     <script>
+    if (document.createStyleSheet) {
+        document.createStyleSheet('//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css');
+    } else {
       var bootstrap = function() {
         var l = document.createElement('link'); l.rel = 'stylesheet';
         l.href = '//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css';
@@ -56,8 +59,12 @@
           webkitRequestAnimationFrame || msRequestAnimationFrame;
       if (raf) raf(bootstrap);
       else window.addEventListener('load', bootstrap);
+    }
     </script>
     <script>
+    if (document.createStyleSheet) {
+        document.createStyleSheet('http://beta.uutispuro.fi/uutispuro.css');
+    } else {
       var css = function() {
         var l = document.createElement('link'); l.rel = 'stylesheet';
         l.href = 'http://beta.uutispuro.fi/uutispuro.css';
@@ -67,6 +74,7 @@
           webkitRequestAnimationFrame || msRequestAnimationFrame;
       if (rafC) rafC(css);
       else window.addEventListener('load', css);
+    }
     </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>

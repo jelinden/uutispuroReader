@@ -114,11 +114,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFileGzipped("uutispuro.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFile("img/favicon.ico")
 	} else if strings.HasSuffix(r.RequestURI, ".png") {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		w.Header().Set("Content-Type", "image/png")
 		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	} else if strings.HasSuffix(r.RequestURI, ".gif") {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		w.Header().Set("Content-Type", "image/gif")
 		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	}
