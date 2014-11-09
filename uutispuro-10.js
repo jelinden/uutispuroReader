@@ -35,10 +35,10 @@ function openWebSocket() {
         var items = [];
         var mintbg = '';
         var obj = $.parseJSON(event.data);
-        if ($('#news-container ul').length > 0 && $('#news-container ul').length != 10) {
+        if ($('#news-container ul').length > 0 && $('#news-container ul').length != 12) {
             mintbg = 'mint';
         }
-        var rssItems = obj.d;
+        var rssItems = obj.d.Items;
         $.each(rssItems, function(count, rss) {
             if($('#' + rss.id).html() == undefined) {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
@@ -58,7 +58,7 @@ function openWebSocket() {
         });
         if (!$.isEmptyObject(items)) {
             $('#news-container ul').removeClass("mint");
-            if ($ul.find("ul").length == 10) {
+            if ($ul.find("ul").length == 12) {
                 $ul.after(items.join(""));
             } else {
                 $ul.prepend(items.join(""));
@@ -66,8 +66,8 @@ function openWebSocket() {
             $(".hiddenelement").fadeIn(2500);
             
             var containerLength = $('#news-container ul').length;
-            if (containerLength > 40) {
-                $ul.find("ul:nth-last-child(-n+" + (containerLength-40)  + ")").remove();
+            if (containerLength > 45) {
+                $ul.find("ul:nth-last-child(-n+" + (containerLength-45)  + ")").remove();
             }
             $('#news-container ul').removeClass("hiddenelement");
         }

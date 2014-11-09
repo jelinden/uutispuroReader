@@ -20,8 +20,8 @@
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
-        <style>a{color:#428bca;text-decoration:none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}</style>
-        
+        <meta name="description" content="{{.Description}}"/>
+        <style>a{color:#428bca;text-decoration:none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}ul{list-style:none;display:inline-block;width:100%;max-width:450px;padding-left:0px;padding-right:3px;margin-left:5px;margin-right:5px;height:117px;background-color:#fafafa;float:left;}.first{height:100%;float:left;}.second{padding-left:8px;margin-top:3px;height:100%;overflow:hidden;}li{padding-right:2px;padding-left:1px;}img{width:130px;}</style>
     </head>
     <body>
         <div class="language"><a href="/fi/">Suomi</a> | <a href="/en/">English</a></div>
@@ -29,7 +29,7 @@
         <div id="status"></div>
         <div id="news-container">
             
-            {{ range . }}
+            {{ range .Items }}
             <ul>
                 <li class="first">
                     {{if eq .Source "Turun Sanomat"}}<div class="img"><img src="{{ .Enclosure.Url }}"/></div>
@@ -63,11 +63,11 @@
     </script>
     <script>
     if (document.createStyleSheet) {
-        document.createStyleSheet('http://beta.uutispuro.fi/uutispuro.css');
+        document.createStyleSheet('/uutispuro-10.css');
     } else {
       var css = function() {
         var l = document.createElement('link'); l.rel = 'stylesheet';
-        l.href = 'http://beta.uutispuro.fi/uutispuro.css';
+        l.href = '/uutispuro-10.css';
         var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
       };
       var rafC = requestAnimationFrame || mozRequestAnimationFrame ||
@@ -78,5 +78,5 @@
     </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
-    <script src="/uutispuro.js"></script>
+    <script src="/uutispuro-10.js"></script>
 </html>

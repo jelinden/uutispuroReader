@@ -66,7 +66,7 @@ func main() {
 	http.ListenAndServe(":9100", nil)
 }
 
-func getFeedTitles(session *mgo.Session, language int, limit int) []rss.Item {
+func getFeedTitles(session *mgo.Session, language int, limit int) Result {
 	result := []rss.Item{}
 	s := session.Clone()
 	c := s.DB("uutispuro").C("rss")
@@ -74,7 +74,7 @@ func getFeedTitles(session *mgo.Session, language int, limit int) []rss.Item {
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
-	return addCategoryShowNames(result)
+	return addCategoryShowNamesAndMetaData(result, language)
 }
 
 func saveClick(id string) {
@@ -88,7 +88,7 @@ func saveClick(id string) {
 }
 
 func fetchRssItems(ws *websocket.Conn, lang int) {
-	doc := map[string]interface{}{"d": getFeedTitles(session, lang, 40)}
+	doc := map[string]interface{}{"d": getFeedTitles(session, lang, 45)}
 	if data, err := json.Marshal(doc); err != nil {
 		log.Printf("Error marshalling json: %v", err)
 	} else {
@@ -103,16 +103,16 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		htmlTemplateFi(w, r)
 	} else if strings.EqualFold(r.RequestURI, "/") || strings.HasPrefix(r.RequestURI, "/en") {
 		htmlTemplateEn(w, r)
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.css") {
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-10.css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFileGzipped("uutispuro.css")
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro.js") {
+		content = openFileGzipped("uutispuro-10.css")
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-10.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFileGzipped("uutispuro.js")
+		content = openFileGzipped("uutispuro-10.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFile("img/favicon.ico")
@@ -149,14 +149,14 @@ func openFileGzipped(fileName string) []byte {
 }
 
 func htmlTemplateEn(w http.ResponseWriter, r *http.Request) {
-	htmlTemplate(w, r, getFeedTitles(session, 2, 10))
+	htmlTemplate(w, r, getFeedTitles(session, 2, 12))
 }
 
 func htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
-	htmlTemplate(w, r, getFeedTitles(session, 1, 10))
+	htmlTemplate(w, r, getFeedTitles(session, 1, 12))
 }
 
-func htmlTemplate(w http.ResponseWriter, r *http.Request, items []rss.Item) {
+func htmlTemplate(w http.ResponseWriter, r *http.Request, result Result) {
 
 	t, err := template.ParseFiles("index.html")
 	if err != nil {
@@ -169,14 +169,14 @@ func htmlTemplate(w http.ResponseWriter, r *http.Request, items []rss.Item) {
 		gw := gzip.NewWriter(w)
 		w.Header().Set("Vary", "Accept-Encoding")
 		w.Header().Set("Content-Encoding", "gzip")
-		t.Execute(gw, items)
+		t.Execute(gw, result)
 		gw.Close()
 	} else {
-		t.Execute(w, items)
+		t.Execute(w, result)
 	}
 }
 
-func addCategoryShowNames(items []rss.Item) []rss.Item {
+func addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
 	for i := range items {
 		if items[i].Category.Name == "Asuminen" {
 			items[i].Category.StyleName = "Koti"
@@ -189,7 +189,23 @@ func addCategoryShowNames(items []rss.Item) []rss.Item {
 		} else {
 			items[i].Category.StyleName = items[i].Category.Name
 		}
-
 	}
-	return items
+	result := Result{}
+	result.Items = items
+	result.Description = addDescription(language)
+	return result
+}
+
+func addDescription(language int) string {
+	if language == 1 {
+		return "Uusimmat uutiset yhdestä lähteestä - www.uutispuro.fi"
+	} else if language == 2 {
+		return "News titles from one source - www.uutispuro.fi"
+	}
+	return "News titles from one source - www.uutispuro.fi"
+}
+
+type Result struct {
+	Items       []rss.Item
+	Description string
 }
