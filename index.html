@@ -37,7 +37,10 @@
                 </li>
                 <li class="second">
                     <div class="source">{{ .Source }}</div>
-                    <div class="category {{ .Category.StyleName }}">{{ .Category.Name }}</div><div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
+                    <div class="category {{ .Category.StyleName }}">
+                    {{if eq $.Lang 1}}{{ .Category.Name }}{{else}}{{ .Category.EnName }}{{end}}
+                    </div>
+                    <div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
                     <div class="link"><a id="{{ .Id.Hex }}" target="_blank" href="{{ .Link }}">{{ .Title }}</a></div>
                 </li>
             </ul>

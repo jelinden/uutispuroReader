@@ -44,14 +44,13 @@ function openWebSocket() {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 var blackBackground = (rss.Source==='Turun Sanomat'||rss.Source==='Telegraph')?'':'black';
                 if(rss.Enclosure.Url != '') {
-
                     items.push("<li class='first'><div class='img " + blackBackground + "'><img src='" + rss.Enclosure.Url + "'/></div></li>");
                 } else {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name;
 
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'>" + categoryName(window.location.pathname, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'>" + categoryName(obj.d.Lang, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
@@ -102,7 +101,7 @@ function news() {
 }
 
 function categoryName(lang, cat) {
-    if (lang === '/en/') {
+    if (lang === 2) {
         if (cat === 'IT ja media') {
             return 'Digital media';
         } else if (cat === 'Digi') {

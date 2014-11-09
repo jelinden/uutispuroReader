@@ -191,8 +191,9 @@ func addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
 		}
 	}
 	result := Result{}
-	result.Items = items
+	result.Items = AddCategoryEnNames(items)
 	result.Description = addDescription(language)
+	result.Lang = language
 	return result
 }
 
@@ -205,7 +206,50 @@ func addDescription(language int) string {
 	return "News titles from one source - www.uutispuro.fi"
 }
 
+func AddCategoryEnNames(items []rss.Item) []rss.Item {
+	for i := range items {
+		cat := items[i].Category.Name
+		if cat == "IT ja media" {
+			items[i].Category.EnName = "Digital media"
+		} else if cat == "Digi" {
+			items[i].Category.EnName = "Digital media"
+		} else if cat == "TV ja elokuvat" {
+			items[i].Category.EnName = "TV and movies"
+		} else if cat == "Asuminen" {
+			items[i].Category.EnName = "Home and living"
+		} else if cat == "Kotimaa" {
+			items[i].Category.EnName = "Domestic"
+		} else if cat == "Kulttuuri" {
+			items[i].Category.EnName = "Culture"
+		} else if cat == "Matkustus" {
+			items[i].Category.EnName = "Travel"
+		} else if cat == "Pelit" {
+			items[i].Category.EnName = "Games"
+		} else if cat == "Ruoka" {
+			items[i].Category.EnName = "Food"
+		} else if cat == "Talous" {
+			items[i].Category.EnName = "Economy"
+		} else if cat == "Terveys" {
+			items[i].Category.EnName = "Health"
+		} else if cat == "Tiede" {
+			items[i].Category.EnName = "Science"
+		} else if cat == "Ulkomaat" {
+			items[i].Category.EnName = "Foreign"
+		} else if cat == "Urheilu" {
+			items[i].Category.EnName = "Sports"
+		} else if cat == "Viihde" {
+			items[i].Category.EnName = "Entertainment"
+		} else if cat == "Blogit" {
+			items[i].Category.EnName = "Blogs"
+		} else if cat == "Naiset ja muoti" {
+			items[i].Category.EnName = "Women and fashion"
+		}
+	}
+	return items
+}
+
 type Result struct {
 	Items       []rss.Item
 	Description string
+	Lang        int
 }
