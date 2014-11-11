@@ -58,7 +58,7 @@ function openWebSocket() {
         if (!$.isEmptyObject(items)) {
             $('#news-container ul').removeClass("mint");
             if ($ul.find("ul").length == 12) {
-                $ul.append()(items.join(""));
+                $ul.append(items.join(""));
             } else {
                 $ul.prepend(items.join(""));
             }
