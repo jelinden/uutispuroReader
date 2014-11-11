@@ -108,11 +108,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFileGzipped("uutispuro-10.css")
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-10.js") {
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-11.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFileGzipped("uutispuro-10.js")
+		content = openFileGzipped("uutispuro-11.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		content = openFile("img/favicon.ico")
