@@ -138,7 +138,7 @@ func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
 }
 
 func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
-	pageNumber := a.getPage(r)
+	//pageNumber := a.getPage(r)
 	//log.Println(r.RemoteAddr, r.RequestURI, pageNumber)
 	var content []byte = nil
 	if strings.HasPrefix(r.RequestURI, "/fi") {
