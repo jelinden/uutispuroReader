@@ -21,19 +21,29 @@
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
         <meta name="description" content="{{.Description}}"/>
-        <style>a{color:#428bca;text-decoration:none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;}.language{margin-left:5px;margin-top:5px;}h1{margin:0px;margin-top:20px;margin-left:5px;margin-bottom:40px;padding:0px;font-weight:500;line-height:1.1;font-family:inherit;font-size:36px;}ul{list-style:none;display:inline-block;width:100%;max-width:450px;padding-left:0px;padding-right:3px;margin-left:5px;margin-right:5px;height:117px;background-color:#fafafa;float:left;}.first{height:100%;float:left;}.second{padding-left:8px;margin-top:3px;height:100%;overflow:hidden;}li{padding-right:2px;padding-left:1px;}img{width:130px;}</style>
+        <link media="only screen and (max-device-width: 481px)" href="/uutispuro-small-11.css" type="text/css" rel="stylesheet">
+        <link media="only screen and (min-device-width: 481px) and (max-device-width: 1024px)" href="/uutispuro-m-11.css" type="text/css" rel="stylesheet">
+        <link media="screen and (min-device-width: 1025px)" href="/uutispuro-11.css" type="text/css" rel="stylesheet">
     </head>
     <body>
         <div class="language"><a href="/fi/">Suomi</a> | <a href="/en/">English</a></div>
         <h1>Uutispuro</h1>    
         <div id="status"></div>
+        <div id="adds">
+            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-1089590297250746"
+                 data-ad-slot="8078296168"
+                 data-ad-format="auto"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        </div>
         <div id="news-container">
-            
             {{ range .Items }}
             <ul>
                 <li class="first">
-                    {{if eq .Source "Turun Sanomat"}}<div class="img"><img src="{{ .Enclosure.Url }}"/></div>
-                    {{else}}<div class="img black"><img src="{{ .Enclosure.Url }}"/></div>{{end}}
+                    {{if eq .Source "Turun Sanomat"}}<div class="img"><img class="imgsize" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>
+                    {{else}}<div class="img black"><img class="imgsize" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>{{end}}
                 </li>
                 <li class="second">
                     <div class="source">{{ .Source }}</div>
@@ -41,11 +51,11 @@
                     {{if eq $.Lang 1}}{{ .Category.Name }}{{else}}{{ .Category.EnName }}{{end}}
                     </div>
                     <div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
+                    <div class="social" id="{{ .Id.Hex }}"><span class='like'>{{ .Likes }}</span><span class='unlike'>{{ .Unlikes }}</div>
                     <div class="link"><a id="{{ .Id.Hex }}" target="_blank" href="{{ .Link }}">{{ .Title }}</a></div>
                 </li>
             </ul>
-            {{end}}
-                            
+            {{end}}          
         </div>
         <div id="error"></div>
     </body>
@@ -62,21 +72,6 @@
           webkitRequestAnimationFrame || msRequestAnimationFrame;
       if (raf) raf(bootstrap);
       else window.addEventListener('load', bootstrap);
-    }
-    </script>
-    <script>
-    if (document.createStyleSheet) {
-        document.createStyleSheet('/uutispuro-10.css');
-    } else {
-      var css = function() {
-        var l = document.createElement('link'); l.rel = 'stylesheet';
-        l.href = '/uutispuro-10.css';
-        var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
-      };
-      var rafC = requestAnimationFrame || mozRequestAnimationFrame ||
-          webkitRequestAnimationFrame || msRequestAnimationFrame;
-      if (rafC) rafC(css);
-      else window.addEventListener('load', css);
     }
     </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>

@@ -2,7 +2,6 @@ body {
     font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
     margin: 0px !important;
 }
-
 h1 {
     margin: 0px;
     margin-top: 20px;
@@ -13,34 +12,35 @@ h1 {
     line-height: 1.1;
     font-family: inherit;
     font-size: 36px;
+    float:left;
+    display: inline-block;
+    clear:left;
 }
-
 ul {
     list-style: none;
     display: inline-block;
     width: 100%;
-    max-width: 450px;
+    max-width: 370px;
     padding-left: 0px;
     padding-right: 3px;
     margin-left: 5px;
     margin-right: 5px;
-    height: 117px;
+    height: 137px;
     background-color:#fafafa;
     float:left;
 }
 .first{height:100%;float:left;}
-.second{padding-left:8px;margin-top:3px;height:100%;overflow:hidden;}
+.second{padding-left:5px;margin-top:3px;height:100%;overflow:hidden;}
 li {
     padding-right: 2px;
     padding-left: 1px;
 }
-
 #status {
     width: 120px;
     margin: 10px;
-    display: block;
+    float:left;
 }
-
+#adds{float:left;max-width:500px;height:60px;margin-left:10px;margin-top: 20px;}
 @media screen and (max-width: 480px) {
     .img {
         display: none !important;
@@ -58,19 +58,9 @@ li {
 .black {
     background-color: black;
 }
-
-img {
-    width: 130px;
-    vertical-align: middle;
-}
-
-.hiddenelement {
-    display: none;
-}
-
-.mint {
-    background-color: #e5ffe5;
-}
+.imgsize{width:130px;}
+.hiddenelement{display: none;}
+.mint{background-color: #e5fmin;}
 
 #news-container {
     max-width:99%;
@@ -82,25 +72,27 @@ img {
     display: inline-block;
     margin-right: 2px;
     margin-top: 2px;
+    float:left;
 }
-
-.source {
-    background-color: #4cff4c;padding: 2px 8px 2px 8px;color: white;
-}
+.source{background-color: #4cff4c;padding: 2px 8px 2px 8px;color: white;}
 .link {
     display: block;
+    clear:left;
     font-size:16px;
     height:100%;
     word-wrap: break-word;
 }
-
-.date {
-    padding-left: 3px;
-}
+.date{padding: 2px 8px 2px 8px;}
 .language {
     margin-left: 5px;
     margin-top: 5px;
 }
+.boldlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/img/like.png);background-repeat:no-repeat;}
+.boldunlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/img/unlike.png);background-repeat:no-repeat;}
+.like{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/img/like.png);background-repeat: no-repeat;}
+.unlike{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/img/unlike.png);background-repeat: no-repeat;}
+.social{padding-top:2px;vertical-align: bottom;line-height: 1.5;vertical-align: text-bottom;float:left;}
+.clicks{float:right;}
 .Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
 .Naisetjamuoti{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}
 .Koti{background-color:#00008b;padding: 2px 8px 2px 8px;color: white;}

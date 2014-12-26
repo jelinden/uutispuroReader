@@ -5,22 +5,56 @@ import (
 	"code.google.com/p/go.net/websocket"
 	"compress/gzip"
 	"encoding/json"
-	"flag"
 	"fmt"
 	"github.com/jelinden/rssFetcher/rss"
-	"gopkg.in/mgo.v2"
+	"github.com/jelinden/uutispuroReader/service"
 	"gopkg.in/mgo.v2/bson"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
+	"strconv"
 	"strings"
 	"text/template"
+	"time"
 )
 
-var mongoAddress = flag.String("address", "localhost", "mongo address")
-var session *mgo.Session
+type Application struct {
+	Sessions *service.Sessions
+}
 
-func wsHandler(ws *websocket.Conn) {
+type Result struct {
+	Items       []rss.Item
+	Description string
+	Lang        int
+}
+
+func NewApplication() *Application {
+	return &Application{}
+}
+
+func (a *Application) Init() {
+	a.Sessions = service.NewSessions()
+	a.Sessions.Init()
+}
+
+func (a *Application) Close() {
+	a.Sessions.Close()
+}
+
+func main() {
+	app := NewApplication()
+	app.Init()
+	defer app.Close()
+
+	fmt.Println("adding routes")
+	http.Handle("/websocket/", websocket.Handler(app.WsHandler))
+	http.HandleFunc("/", app.rootHandler)
+	fmt.Println("starting web server")
+	http.ListenAndServe(":9100", nil)
+}
+
+func (a *Application) WsHandler(ws *websocket.Conn) {
 	defer func() {
 		log.Printf(" Connection closed\n")
 		ws.Close()
@@ -32,53 +66,40 @@ func wsHandler(ws *websocket.Conn) {
 			log.Printf("Connection closed %s\n", err)
 			break
 		}
-		log.Println(ws.Request().RequestURI)
+		log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI)
 		if strings.HasPrefix(string(msg[:n]), "c/") {
-			saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
+			a.saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
+		} else if strings.HasPrefix(string(msg[:n]), "l/") {
+			a.saveLike(strings.Replace(string(msg[:n]), "l/", "", -1))
+		} else if strings.HasPrefix(string(msg[:n]), "u/") {
+			a.saveUnlike(strings.Replace(string(msg[:n]), "u/", "", -1))
 		} else if strings.HasSuffix(ws.Request().RequestURI, "/fi/") {
-			fetchRssItems(ws, 1)
+			a.fetchRssItems(ws, 1)
 		} else if strings.HasSuffix(ws.Request().RequestURI, "/en/") {
-			fetchRssItems(ws, 2)
+			a.fetchRssItems(ws, 2)
 		} else if strings.HasSuffix(ws.Request().RequestURI, "/sv/") {
-			fetchRssItems(ws, 3)
+			a.fetchRssItems(ws, 3)
 		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
-			fetchRssItems(ws, 2)
+			a.fetchRssItems(ws, 2)
 		}
 	}
 	log.Printf(" => closing connection\n")
 	ws.Close()
 }
 
-func main() {
-	flag.Parse()
-	fmt.Println("mongoAddress " + *mongoAddress)
-	var err error
-	if session, err = mgo.Dial(*mongoAddress); err != nil {
-		fmt.Println("closing up, no connection to mongo")
-		panic(err)
-	}
-	defer session.Close()
-	session.SetMode(mgo.Monotonic, true)
-	fmt.Println("adding routes")
-	http.Handle("/websocket/", websocket.Handler(wsHandler))
-	http.HandleFunc("/", rootHandler)
-	fmt.Println("starting web server")
-	http.ListenAndServe(":9100", nil)
-}
-
-func getFeedTitles(session *mgo.Session, language int, limit int) Result {
+func (a *Application) getFeedTitles(language int, limit int) Result {
 	result := []rss.Item{}
-	s := session.Clone()
+	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
 	err := c.Find(bson.M{"language": language}).Sort("-date").Limit(limit).All(&result)
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
-	return addCategoryShowNamesAndMetaData(result, language)
+	return a.addCategoryShowNamesAndMetaData(result, language)
 }
 
-func saveClick(id string) {
-	s := session.Clone()
+func (a *Application) saveClick(id string) {
+	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
 	type M map[string]interface{}
 	_, err := c.UpsertId(bson.ObjectIdHex(id), M{"$inc": M{"clicks": 1}})
@@ -87,8 +108,28 @@ func saveClick(id string) {
 	}
 }
 
-func fetchRssItems(ws *websocket.Conn, lang int) {
-	doc := map[string]interface{}{"d": getFeedTitles(session, lang, 45)}
+func (a *Application) saveLike(id string) {
+	s := a.Sessions.Mongo.Clone()
+	c := s.DB("uutispuro").C("rss")
+	type M map[string]interface{}
+	_, err := c.UpsertId(bson.ObjectIdHex(id), M{"$inc": M{"likes": 1}})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func (a *Application) saveUnlike(id string) {
+	s := a.Sessions.Mongo.Clone()
+	c := s.DB("uutispuro").C("rss")
+	type M map[string]interface{}
+	_, err := c.UpsertId(bson.ObjectIdHex(id), M{"$inc": M{"unlikes": 1}})
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+}
+
+func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
+	doc := map[string]interface{}{"d": a.getFeedTitles(lang, 45)}
 	if data, err := json.Marshal(doc); err != nil {
 		log.Printf("Error marshalling json: %v", err)
 	} else {
@@ -96,39 +137,46 @@ func fetchRssItems(ws *websocket.Conn, lang int) {
 	}
 }
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("uri " + r.RequestURI)
+func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
+	pageNumber := a.getPage(r)
+	//log.Println(r.RemoteAddr, r.RequestURI, pageNumber)
 	var content []byte = nil
 	if strings.HasPrefix(r.RequestURI, "/fi") {
-		htmlTemplateFi(w, r)
+		a.htmlTemplateFi(w, r)
 	} else if strings.EqualFold(r.RequestURI, "/") || strings.HasPrefix(r.RequestURI, "/en") {
-		htmlTemplateEn(w, r)
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-10.css") {
+		a.htmlTemplateEn(w, r)
+	} else if strings.HasSuffix(r.RequestURI, ".css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFileGzipped("uutispuro-10.css")
+		a.setHttpCacheHeaders(w.Header())
+		content = a.openFileGzipped("styles" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-13.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFileGzipped("uutispuro-13.js")
+		a.setHttpCacheHeaders(w.Header())
+		content = a.openFileGzipped("uutispuro-13.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
-		content = openFile("img/favicon.ico")
+		a.setHttpCacheHeaders(w.Header())
+		content = a.openFile("img/favicon.ico")
 	} else if strings.HasSuffix(r.RequestURI, ".png") {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
+		a.setHttpCacheHeaders(w.Header())
 		w.Header().Set("Content-Type", "image/png")
-		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
+		content = a.openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	} else if strings.HasSuffix(r.RequestURI, ".gif") {
-		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
 		w.Header().Set("Content-Type", "image/gif")
-		content = openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
+		a.setHttpCacheHeaders(w.Header())
+		content = a.openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	}
 	fmt.Fprintf(w, "%s", content)
 }
 
-func openFile(fileName string) []byte {
+func (a *Application) setHttpCacheHeaders(header http.Header) {
+	header.Set("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", 60*60*24*7*4))
+	header.Set("Last-Modified", time.Now().Format(http.TimeFormat))
+	header.Set("Expires", time.Now().AddDate(60, 0, 0).Format(http.TimeFormat))
+}
+
+func (a *Application) openFile(fileName string) []byte {
 	content, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		log.Println("Could not open file.", err)
@@ -136,7 +184,7 @@ func openFile(fileName string) []byte {
 	return content
 }
 
-func openFileGzipped(fileName string) []byte {
+func (a *Application) openFileGzipped(fileName string) []byte {
 	content, err := ioutil.ReadFile(fileName)
 	var b bytes.Buffer
 	w := gzip.NewWriter(&b)
@@ -148,15 +196,15 @@ func openFileGzipped(fileName string) []byte {
 	return b.Bytes()
 }
 
-func htmlTemplateEn(w http.ResponseWriter, r *http.Request) {
-	htmlTemplate(w, r, getFeedTitles(session, 2, 12))
+func (a *Application) htmlTemplateEn(w http.ResponseWriter, r *http.Request) {
+	a.htmlTemplate(w, r, a.getFeedTitles(2, 15))
 }
 
-func htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
-	htmlTemplate(w, r, getFeedTitles(session, 1, 12))
+func (a *Application) htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
+	a.htmlTemplate(w, r, a.getFeedTitles(1, 15))
 }
 
-func htmlTemplate(w http.ResponseWriter, r *http.Request, result Result) {
+func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, result Result) {
 
 	t, err := template.ParseFiles("index.html")
 	if err != nil {
@@ -176,7 +224,7 @@ func htmlTemplate(w http.ResponseWriter, r *http.Request, result Result) {
 	}
 }
 
-func addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
+func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
 	for i := range items {
 		if items[i].Category.Name == "Asuminen" {
 			items[i].Category.StyleName = "Koti"
@@ -191,13 +239,13 @@ func addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
 		}
 	}
 	result := Result{}
-	result.Items = AddCategoryEnNames(items)
-	result.Description = addDescription(language)
+	result.Items = a.AddCategoryEnNames(items)
+	result.Description = a.addDescription(language)
 	result.Lang = language
 	return result
 }
 
-func addDescription(language int) string {
+func (a *Application) addDescription(language int) string {
 	if language == 1 {
 		return "Uusimmat uutiset yhdestä lähteestä - www.uutispuro.fi"
 	} else if language == 2 {
@@ -206,7 +254,7 @@ func addDescription(language int) string {
 	return "News titles from one source - www.uutispuro.fi"
 }
 
-func AddCategoryEnNames(items []rss.Item) []rss.Item {
+func (a *Application) AddCategoryEnNames(items []rss.Item) []rss.Item {
 	for i := range items {
 		cat := items[i].Category.Name
 		if cat == "IT ja media" {
@@ -248,8 +296,29 @@ func AddCategoryEnNames(items []rss.Item) []rss.Item {
 	return items
 }
 
-type Result struct {
-	Items       []rss.Item
-	Description string
-	Lang        int
+func (a *Application) getPage(req *http.Request) int {
+	r, err := regexp.Compile("[0-9]+")
+	if err != nil {
+		return 0
+	}
+	res := r.FindString(req.URL.Path)
+	page, err2 := strconv.Atoi(res)
+	if err2 != nil {
+		return 0
+	}
+	return page
+}
+
+func (a *Application) parseQueryValues(req *http.Request, value string) int {
+	vals := req.URL.Query()
+	val := vals[value]
+	if val != nil {
+		v, err := strconv.ParseInt(val[0], 10, 0)
+		if err != nil {
+			log.Println("page parsing error")
+			return 0
+		}
+		return int(v)
+	}
+	return 0
 }

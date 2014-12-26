@@ -2,11 +2,11 @@
 var ws;
 var newsIntervalId;
 var connectionIntervalId;
-var connectionRetryCounter = 1;
+var connectionRetryCounter = 0;
 function retryOpeningWebSocket() {
     $('#status').html('Trying to reconnect');
     connectionIntervalId = setInterval(function() {
-        if (connectionRetryCounter == 3) {
+        if (connectionRetryCounter == 2) {
             location.reload(true);
         }
         connectionRetryCounter +=1;
@@ -15,7 +15,7 @@ function retryOpeningWebSocket() {
             $('#status').html('Reconnected');
             clearInterval(connectionIntervalId);
         }
-    }, 1500);
+    }, 1100);
 }
 
 function url() {
@@ -35,7 +35,7 @@ function openWebSocket() {
         var items = [];
         var mintbg = '';
         var obj = $.parseJSON(event.data);
-        if ($('#news-container ul').length > 0 && $('#news-container ul').length != 12) {
+        if ($('#news-container ul').length > 0 && $('#news-container ul').length != 15) {
             mintbg = 'mint';
         }
         var rssItems = obj.d.Items;
@@ -44,26 +44,25 @@ function openWebSocket() {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 var blackBackground = (rss.Source==='Turun Sanomat'||rss.Source==='Telegraph')?'':'black';
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first'><div class='img " + blackBackground + "'><img src='" + rss.Enclosure.Url + "'/></div></li>");
+                    items.push("<li class='first'><div class='img " + blackBackground + "'><img class='imgsize' src='" + rss.Enclosure.Url + "'/></div></li>");
                 } else {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name;
-
                 items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'>" + categoryName(obj.d.Lang, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<div class='social' id='" + rss.id + "'><span class='like'>" + rss.Likes + "</span><span class='unlike'>" + rss.Unlikes + "</span></div>");
                 items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");
             }
         });
         if (!$.isEmptyObject(items)) {
             $('#news-container ul').removeClass("mint");
-            if ($ul.find("ul").length == 12) {
+            if ($ul.find("ul").length == 15) {
                 $ul.append(items.join(""));
             } else {
                 $ul.prepend(items.join(""));
             }
             $(".hiddenelement").fadeIn(2500);
-            
             var containerLength = $('#news-container ul').length;
             if (containerLength > 45) {
                 $ul.find("ul:nth-last-child(-n+" + (containerLength-45)  + ")").remove();
@@ -87,7 +86,7 @@ function openWebSocket() {
     ws.onerror = function(event) {
 
     };
-  } else {
+  } else if (!("WebSocket" in window)) {
     alert("WebSocket NOT supported by your Browser! Please change to a modern browser.");
   }
 }
@@ -138,7 +137,6 @@ function categoryName(lang, cat) {
             return 'Women and fashion';
         }
     } else if (lang === '/sv/') {
-
     } else {
         return cat;
     }
@@ -149,6 +147,22 @@ $(function() {
     $(document).delegate('.link a', 'click', function(e) {
         if (ws != undefined && ws.readyState === ws.OPEN) {
             ws.send("c/" + e.target.id);
+        }
+    })
+    $(document).delegate('.like', 'click', function(e) {
+        if (ws != undefined && ws.readyState === ws.OPEN) { 
+            ws.send("l/" + e.target.parentNode.id);
+            $(e.target).removeClass("like");
+            $(e.target).addClass("boldlike");
+            $(e.target).html(+$(e.target).html() + 1)
+        }
+    })
+    $(document).delegate('.unlike', 'click', function(e) {
+        if (ws != undefined && ws.readyState === ws.OPEN) {
+            ws.send("u/" + e.target.parentNode.id);
+            $(e.target).removeClass("unlike");
+            $(e.target).addClass("boldunlike");
+            $(e.target).html(+$(e.target).html() + 1)
         }
     })
 });
