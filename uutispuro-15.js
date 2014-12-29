@@ -101,14 +101,12 @@ function news() {
 
 function categoryName(lang, cat) {
     if (lang === 2) {
-        if (cat === 'IT ja media') {
-            return 'Digital media';
-        } else if (cat === 'Digi') {
-            return 'Digital media';
-        } else if (cat === 'TV ja elokuvat') {
-            return 'TV and movies';
-        } else if (cat === 'Asuminen') {
-            return 'Home and living';
+        if (cat === 'Digi') {
+            return 'Tech';
+        } else if (cat === 'Elokuvat') {
+            return 'Movies';
+        } else if (cat === 'Koti') {
+            return 'Home';
         } else if (cat === 'Kotimaa') {
             return 'Domestic';
         } else if (cat === 'Kulttuuri') {
@@ -133,8 +131,8 @@ function categoryName(lang, cat) {
             return 'Entertainment';
         } else if (cat === 'Blogit') {
             return 'Blogs';
-        } else if (cat === 'Naiset ja muoti') {
-            return 'Women and fashion';
+        } else if (cat === 'Naiset') {
+            return 'Women';
         }
     } else if (lang === '/sv/') {
     } else {
@@ -149,7 +147,7 @@ $(function() {
             ws.send("c/" + e.target.id);
         }
     })
-    $(document).delegate('.like', 'click', function(e) {
+    $('.like').on('click', function(e) {
         if (ws != undefined && ws.readyState === ws.OPEN) { 
             ws.send("l/" + e.target.parentNode.id);
             $(e.target).removeClass("like");
@@ -157,7 +155,7 @@ $(function() {
             $(e.target).html(+$(e.target).html() + 1)
         }
     })
-    $(document).delegate('.unlike', 'click', function(e) {
+    $('.unlike').on('click', function(e) {
         if (ws != undefined && ws.readyState === ws.OPEN) {
             ws.send("u/" + e.target.parentNode.id);
             $(e.target).removeClass("unlike");

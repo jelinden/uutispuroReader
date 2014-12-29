@@ -63,7 +63,7 @@ func (a *Application) WsHandler(ws *websocket.Conn) {
 	for {
 		n, err := ws.Read(msg)
 		if err != nil {
-			log.Printf("Connection closed %s\n", err)
+			log.Printf("client closed connection %s\n", err)
 			break
 		}
 		log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI)
@@ -141,7 +141,9 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 	//pageNumber := a.getPage(r)
 	//log.Println(r.RemoteAddr, r.RequestURI, pageNumber)
 	var content []byte = nil
-	if strings.HasPrefix(r.RequestURI, "/fi") {
+	if strings.EqualFold(r.RequestURI, "/") {
+		http.Redirect(w, r, "/en/", 301)
+	} else if strings.HasPrefix(r.RequestURI, "/fi") {
 		a.htmlTemplateFi(w, r)
 	} else if strings.EqualFold(r.RequestURI, "/") || strings.HasPrefix(r.RequestURI, "/en") {
 		a.htmlTemplateEn(w, r)
@@ -150,14 +152,14 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("styles" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-14.js") {
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-15.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
-		content = a.openFileGzipped("uutispuro-14.js")
+		content = a.openFileGzipped("uutispuro-15.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		a.setHttpCacheHeaders(w.Header())
-		content = a.openFile("img/favicon.ico")
+		content = a.openFileGzipped("img/favicon.ico")
 	} else if strings.HasSuffix(r.RequestURI, ".png") {
 		a.setHttpCacheHeaders(w.Header())
 		w.Header().Set("Content-Type", "image/png")
@@ -166,6 +168,8 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "image/gif")
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFile("img" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
+	} else {
+		w.WriteHeader(http.StatusNotFound)
 	}
 	fmt.Fprintf(w, "%s", content)
 }
@@ -226,17 +230,7 @@ func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, resul
 
 func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
 	for i := range items {
-		if items[i].Category.Name == "Asuminen" {
-			items[i].Category.StyleName = "Koti"
-		} else if items[i].Category.Name == "IT ja media" {
-			items[i].Category.StyleName = "Digi"
-		} else if items[i].Category.Name == "Naiset ja muoti" {
-			items[i].Category.StyleName = "Naisetjamuoti"
-		} else if items[i].Category.Name == "TV ja elokuvat" {
-			items[i].Category.StyleName = "Elokuvat"
-		} else {
-			items[i].Category.StyleName = items[i].Category.Name
-		}
+		items[i].Category.StyleName = items[i].Category.Name
 	}
 	result := Result{}
 	result.Items = a.AddCategoryEnNames(items)
@@ -257,14 +251,12 @@ func (a *Application) addDescription(language int) string {
 func (a *Application) AddCategoryEnNames(items []rss.Item) []rss.Item {
 	for i := range items {
 		cat := items[i].Category.Name
-		if cat == "IT ja media" {
-			items[i].Category.EnName = "Digital media"
-		} else if cat == "Digi" {
-			items[i].Category.EnName = "Digital media"
-		} else if cat == "TV ja elokuvat" {
-			items[i].Category.EnName = "TV and movies"
-		} else if cat == "Asuminen" {
-			items[i].Category.EnName = "Home and living"
+		if cat == "Digi" {
+			items[i].Category.EnName = "Tech"
+		} else if cat == "Elokuvat" {
+			items[i].Category.EnName = "Movies"
+		} else if cat == "Koti" {
+			items[i].Category.EnName = "Home"
 		} else if cat == "Kotimaa" {
 			items[i].Category.EnName = "Domestic"
 		} else if cat == "Kulttuuri" {
@@ -289,8 +281,8 @@ func (a *Application) AddCategoryEnNames(items []rss.Item) []rss.Item {
 			items[i].Category.EnName = "Entertainment"
 		} else if cat == "Blogit" {
 			items[i].Category.EnName = "Blogs"
-		} else if cat == "Naiset ja muoti" {
-			items[i].Category.EnName = "Women and fashion"
+		} else if cat == "Naiset" {
+			items[i].Category.EnName = "Women"
 		}
 	}
 	return items
