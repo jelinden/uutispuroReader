@@ -147,7 +147,6 @@ function listenClicks() {
     $('.link a').off();
     $('.link a').on('click', function(e) {
         if (ws != undefined && ws.readyState === ws.OPEN) {
-            console.log("clicked ", e.target.id);
             ws.send("c/" + e.target.id);
         }
     })
