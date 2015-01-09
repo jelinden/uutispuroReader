@@ -44,7 +44,7 @@ function openWebSocket() {
                 items.push("<ul id='" + rss.id + "' class='hiddenelement " + mintbg + "'>");
                 var blackBackground = (rss.Source==='Turun Sanomat'||rss.Source==='Telegraph')?'':'black';
                 if(rss.Enclosure.Url != '') {
-                    items.push("<li class='first'><div class='img " + blackBackground + "'><img class='imgsize' src='" + rss.Enclosure.Url + "'/></div></li>");
+                    items.push("<li class='first'><div class='img " + blackBackground + "'><img class='imgsize' onerror='this.src=\"\"' src='" + rss.Enclosure.Url + "'/></div></li>");
                 } else {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }

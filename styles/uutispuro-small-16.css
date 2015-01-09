@@ -30,7 +30,7 @@ ul {
     float:left;
 }
 .first{height:100%;float:left;}
-.second{padding-left:5px;margin-top:3px;height:100%;overflow:hidden;}
+.second{padding-left:5px;margin-top:0px;height:100%;overflow:hidden;}
 li {
     padding-right: 2px;
     padding-left: 1px;
@@ -40,7 +40,7 @@ li {
     height:20px;
     margin: 10px;
 }
-#adds{display:inline-block;min-width:400px;max-width:500px;height:70px;max-height:70px;margin-left:10px;margin-top: 10px;}
+#adds{display:inline-block;min-width:400px;max-width:500px;height:75px;max-height:75px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
 @media screen and (max-width: 480px) {
     .img {
         display: none !important;
@@ -54,7 +54,9 @@ li {
     display: table-cell;
     vertical-align: middle;
 }
-
+img {
+    max-height:110px;
+}
 .black {
     background-color: black;
 }

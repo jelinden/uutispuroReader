@@ -21,9 +21,10 @@
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
         <meta name="description" content="{{.Description}}"/>
-        <link media="only screen and (max-device-width: 481px)" href="/uutispuro-small-15.css" type="text/css" rel="stylesheet">
-        <link media="only screen and (min-device-width: 481px) and (max-device-width: 1024px)" href="/uutispuro-m-15.css" type="text/css" rel="stylesheet">
-        <link media="screen and (min-device-width: 1025px)" href="/uutispuro-15.css" type="text/css" rel="stylesheet">
+        <style>a,a:visited,a:hover{color:#428bca;text-decoration:none;}.category a,.category a:visited,.category a:hover{color:white;text-decoration:none;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;margin:0px !important;}font-size:14px !important;</style>
+        <link media="only screen and (max-device-width: 481px)" href="/uutispuro-small-16.css" type="text/css" rel="stylesheet">
+        <link media="only screen and (min-device-width: 481px) and (max-device-width: 1024px)" href="/uutispuro-m-16.css" type="text/css" rel="stylesheet">
+        <link media="screen and (min-device-width: 1025px)" href="/uutispuro-16.css" type="text/css" rel="stylesheet">
     </head>
     <body>
         <div class="language"><a href="/fi/">Suomi</a> | <a href="/en/">English</a></div>
@@ -42,13 +43,13 @@
             {{ range .Items }}
             <ul>
                 <li class="first">
-                    {{if eq .Source "Turun Sanomat"}}<div class="img"><img class="imgsize" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>
-                    {{else}}<div class="img black"><img class="imgsize" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>{{end}}
+                    {{if eq .Source "Turun Sanomat"}}<div class="img"><img class="imgsize" onerror="this.src=''" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>
+                    {{else}}<div class="img black"><img class="imgsize" onerror="this.src=''" src="{{ .Enclosure.Url }}" onerror="this.style.display='none'"/></div>{{end}}
                 </li>
                 <li class="second">
                     <div class="source">{{ .Source }}</div>
                     <div class="category {{ .Category.StyleName }}">
-                    {{if eq $.Lang 1}}{{ .Category.Name }}{{else}}{{ .Category.EnName }}{{end}}
+                        <a href="/{{if eq $.Lang 1}}fi{{else}}en{{end}}/category/{{ .Category.Name }}">{{if eq $.Lang 1}}{{ .Category.Name }}{{else}}{{ .Category.EnName }}{{end}}</a>
                     </div>
                     <div class="date">{{ .Date.Local.Format "02.01. 15:04" }}</div>
                     <div class="social" id="{{ .Id.Hex }}"><span class='like'>{{ .Likes }}</span><span class='unlike'>{{ .Unlikes }}</div>
@@ -76,5 +77,5 @@
     </script>
     <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
-    <script src="/uutispuro-16.js"></script>
+    <script src="/uutispuro-17.js"></script>
 </html>

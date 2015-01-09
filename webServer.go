@@ -15,8 +15,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
+    "html/template"
 )
 
 type Application struct {
@@ -66,19 +66,24 @@ func (a *Application) WsHandler(ws *websocket.Conn) {
 			log.Printf("client closed connection %s\n", err)
 			break
 		}
-		log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI)
-		if strings.HasPrefix(string(msg[:n]), "c/") {
+        attrs := strings.Split(ws.Request().RequestURI, "/")
+		//log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI, len(attrs))
+        if(len(attrs) > 4) {
+            if (strings.EqualFold(attrs[2], "fi") && strings.EqualFold(attrs[3], "category")) {
+                a.fetchRssItemsByCategory(ws, 1, attrs[4])
+            } else if (strings.EqualFold(attrs[2], "en") && strings.EqualFold(attrs[3], "category")) {
+                a.fetchRssItemsByCategory(ws, 2, attrs[4])
+            }
+        } else if strings.HasPrefix(string(msg[:n]), "c/") {
 			a.saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
 		} else if strings.HasPrefix(string(msg[:n]), "l/") {
 			a.saveLike(strings.Replace(string(msg[:n]), "l/", "", -1))
 		} else if strings.HasPrefix(string(msg[:n]), "u/") {
 			a.saveUnlike(strings.Replace(string(msg[:n]), "u/", "", -1))
-		} else if strings.HasSuffix(ws.Request().RequestURI, "/fi/") {
+		} else if (strings.HasSuffix(ws.Request().RequestURI, "/fi/") || strings.HasSuffix(ws.Request().RequestURI, "/fi")) {
 			a.fetchRssItems(ws, 1)
-		} else if strings.HasSuffix(ws.Request().RequestURI, "/en/") {
+		} else if (strings.HasSuffix(ws.Request().RequestURI, "/en/") || strings.HasSuffix(ws.Request().RequestURI, "/en")) {
 			a.fetchRssItems(ws, 2)
-		} else if strings.HasSuffix(ws.Request().RequestURI, "/sv/") {
-			a.fetchRssItems(ws, 3)
 		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
 			a.fetchRssItems(ws, 2)
 		}
@@ -92,6 +97,21 @@ func (a *Application) getFeedTitles(language int, limit int) Result {
 	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
 	err := c.Find(bson.M{"language": language}).Sort("-date").Limit(limit).All(&result)
+	if err != nil {
+		fmt.Println("Fatal error " + err.Error())
+	}
+	return a.addCategoryShowNamesAndMetaData(result, language)
+}
+
+func (a *Application) getFeedCategoryTitles(language int, category string, limit int) Result {
+	result := []rss.Item{}
+	s := a.Sessions.Mongo.Clone()
+	c := s.DB("uutispuro").C("rss")
+	err := c.Find(
+                bson.M{"language": language, "category.name": strings.ToUpper(category[0:1]) + category[1:]}, 
+            ).
+            Sort("-date").
+            Limit(limit).All(&result)
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
@@ -137,26 +157,43 @@ func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
 	}
 }
 
+func (a *Application) fetchRssItemsByCategory(ws *websocket.Conn, lang int, category string) {
+	doc := map[string]interface{}{"d": a.getFeedCategoryTitles(lang, category, 45)}
+	if data, err := json.Marshal(doc); err != nil {
+		log.Printf("Error marshalling json: %v", err)
+	} else {
+		ws.Write(data)
+	}
+}
+
 func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 	//pageNumber := a.getPage(r)
 	//log.Println(r.RemoteAddr, r.RequestURI, pageNumber)
-	var content []byte = nil
-	if strings.EqualFold(r.RequestURI, "/") {
+    attrs := strings.Split(r.URL.Path, "/")
+    var content []byte = nil
+    if(len(attrs) > 3) {
+        if (strings.EqualFold(attrs[1], "fi") && strings.EqualFold(attrs[2], "category")) {
+            a.htmlCategoryTemplate(w, r, 1, attrs[3]) 
+        } else if (strings.EqualFold(attrs[1], "en") && strings.EqualFold(attrs[2], "category")) {
+            a.htmlCategoryTemplate(w, r, 2, attrs[3]) 
+        }
+    } else if strings.EqualFold(r.RequestURI, "/") {
 		http.Redirect(w, r, "/en/", 301)
-	} else if strings.HasPrefix(r.RequestURI, "/fi") {
+	} else if (strings.HasPrefix(r.RequestURI, "/fi") || strings.HasPrefix(r.RequestURI, "/fi/")) {
+        log.Println("here")
 		a.htmlTemplateFi(w, r)
-	} else if strings.EqualFold(r.RequestURI, "/") || strings.HasPrefix(r.RequestURI, "/en") {
+	} else if (strings.HasPrefix(r.RequestURI, "/en") || strings.HasPrefix(r.RequestURI, "/en/")) {
 		a.htmlTemplateEn(w, r)
 	} else if strings.HasSuffix(r.RequestURI, ".css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("styles" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-16.js") {
+	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-17.js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
-		content = a.openFileGzipped("uutispuro-16.js")
+		content = a.openFileGzipped("uutispuro-17.js")
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("img/favicon.ico")
@@ -201,20 +238,22 @@ func (a *Application) openFileGzipped(fileName string) []byte {
 }
 
 func (a *Application) htmlTemplateEn(w http.ResponseWriter, r *http.Request) {
-	a.htmlTemplate(w, r, a.getFeedTitles(2, 15))
+	a.htmlTemplate(w, r, a.getFeedTitles(2, 15), "html/index.html")
 }
 
 func (a *Application) htmlTemplateFi(w http.ResponseWriter, r *http.Request) {
-	a.htmlTemplate(w, r, a.getFeedTitles(1, 15))
+	a.htmlTemplate(w, r, a.getFeedTitles(1, 15), "html/index.html")
 }
 
-func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, result Result) {
+func (a *Application) htmlCategoryTemplate(w http.ResponseWriter, r *http.Request, lang int, category string) {
+	a.htmlTemplate(w, r, a.getFeedCategoryTitles(lang, category, 15), "html/index.html")
+}
 
-	t, err := template.ParseFiles("index.html")
+func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, result Result, tString string) {
+	t, err := template.ParseFiles(tString)
 	if err != nil {
 		log.Printf("Template gave: %s", err)
 	}
-
 	cangzip := strings.Index(r.Header.Get("Accept-Encoding"), "gzip") > -1
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if cangzip {
