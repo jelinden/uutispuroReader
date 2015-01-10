@@ -180,7 +180,6 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
     } else if strings.EqualFold(r.RequestURI, "/") {
 		http.Redirect(w, r, "/en/", 301)
 	} else if (strings.HasPrefix(r.RequestURI, "/fi") || strings.HasPrefix(r.RequestURI, "/fi/")) {
-        log.Println("here")
 		a.htmlTemplateFi(w, r)
 	} else if (strings.HasPrefix(r.RequestURI, "/en") || strings.HasPrefix(r.RequestURI, "/en/")) {
 		a.htmlTemplateEn(w, r)
