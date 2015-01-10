@@ -189,11 +189,11 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("styles" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
-	} else if strings.HasSuffix(r.RequestURI, "/uutispuro-17.js") {
+	} else if strings.HasSuffix(r.RequestURI, ".js") {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
-		content = a.openFileGzipped("uutispuro-17.js")
+		content = a.openFileGzipped(r.RequestURI[strings.LastIndex(r.RequestURI, "/")+1:len(r.RequestURI)])
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("img/favicon.ico")

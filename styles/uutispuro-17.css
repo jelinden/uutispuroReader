@@ -93,7 +93,7 @@ img {
 .boldunlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/unlike.png);background-repeat:no-repeat;}
 .like{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/like.png);background-repeat: no-repeat;}
 .unlike{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/unlike.png);background-repeat: no-repeat;}
-.social{vertical-align: bottom;line-height: 1.5;vertical-align: text-bottom;}
+.social{vertical-align: bottom;line-height: 1.5;vertical-align: text-bottom;margin-top:3px;}
 .clicks{float:right;}
 .Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
 .Naiset{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}

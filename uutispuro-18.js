@@ -49,7 +49,7 @@ function openWebSocket() {
                     items.push("<li class='first'><div class='img " + blackBackground + "'>&nbsp;</div></li>");
                 }
                 var category = rss.Category.Name;
-                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'>" + categoryName(obj.d.Lang, category) + "</div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
+                items.push("<li class='second'><div class='source'>" + rss.Source + "</div><div class='category " + rss.Category.StyleName + "'><a href=\"/" + window.location.pathname.split('/')[1] + "/category/" + category + "\">" + categoryName(obj.d.Lang, category) + "</a></div><div class='date'>" + $.format.date(rss.Date, 'dd.MM. HH:mm') + "</div>");
                 items.push("<div class='social' id='" + rss.id + "'><span class='like'>" + rss.Likes + "</span><span class='unlike'>" + rss.Unlikes + "</span></div>");
                 items.push("<div class='link'><a id='" + rss.id + "' target='_blank' href='" + rss.Link + "'>" + rss.Title + "</a></div></li>");
                 items.push("</ul>");

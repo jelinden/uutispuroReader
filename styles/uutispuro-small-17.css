@@ -20,12 +20,12 @@ ul {
     list-style: none;
     display: inline-block;
     width: 100%;
-    max-width: 370px;
+    max-width: 460px;
     padding-left: 0px;
     padding-right: 3px;
     margin-left: 5px;
     margin-right: 5px;
-    height: 137px;
+    height: 117px;
     background-color:#fafafa;
     float:left;
 }
@@ -36,9 +36,9 @@ li {
     padding-left: 1px;
 }
 #status {
-    width: 120px;
+    width: 140px;
+    height:20px;
     margin: 10px;
-    float:left;
 }
 #adds{display:inline-block;min-width:400px;max-width:500px;height:75px;max-height:75px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
 @media screen and (max-width: 480px) {
@@ -74,26 +74,24 @@ img {
     display: inline-block;
     margin-right: 2px;
     margin-top: 2px;
-    float:left;
 }
 .source{background-color: #4cff4c;padding: 2px 8px 2px 8px;color: white;}
 .link {
     display: block;
-    clear:left;
     font-size:16px;
     height:100%;
     word-wrap: break-word;
 }
-.date{padding: 2px 8px 2px 8px;}
+.date{padding-left: 3px;}
 .language {
     margin-left: 5px;
     margin-top: 5px;
 }
-.boldlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/like.png);background-repeat:no-repeat;}
-.boldunlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/unlike.png);background-repeat:no-repeat;}
-.like{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/like.png);background-repeat: no-repeat;}
-.unlike{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/unlike.png);background-repeat: no-repeat;}
-.social{padding-top:2px;vertical-align: bottom;line-height: 1.5;vertical-align: text-bottom;float:left;}
+.boldlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/img/like.png);background-repeat:no-repeat;}
+.boldunlike{padding-left:20px;margin-left:3px;margin-right: 10px;font-weight:bold;background-image:url(/img/unlike.png);background-repeat:no-repeat;}
+.like{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/img/like.png);background-repeat: no-repeat;}
+.unlike{padding-left:20px;margin-left:3px;margin-right: 10px;background-image:url(/img/unlike.png);background-repeat: no-repeat;}
+.social{vertical-align: bottom;line-height: 1.5;vertical-align: text-bottom;margin-top:3px;}
 .clicks{float:right;}
 .Digi{background-color:#f7df37;padding: 2px 8px 2px 8px;color: white;}
 .Naiset{background-color:#fee5f9;padding: 2px 8px 2px 8px;color: white;}
