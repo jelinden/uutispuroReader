@@ -23,12 +23,6 @@ type Application struct {
 	Sessions *service.Sessions
 }
 
-type Result struct {
-	Items       []rss.Item
-	Description string
-	Lang        int
-}
-
 func NewApplication() *Application {
 	return &Application{}
 }
@@ -92,7 +86,7 @@ func (a *Application) WsHandler(ws *websocket.Conn) {
 	ws.Close()
 }
 
-func (a *Application) getFeedTitles(language int, limit int) Result {
+func (a *Application) getFeedTitles(language int, limit int) service.Result {
 	result := []rss.Item{}
 	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
@@ -103,7 +97,7 @@ func (a *Application) getFeedTitles(language int, limit int) Result {
 	return a.addCategoryShowNamesAndMetaData(result, language)
 }
 
-func (a *Application) getFeedCategoryTitles(language int, category string, limit int) Result {
+func (a *Application) getFeedCategoryTitles(language int, category string, limit int) service.Result {
 	result := []rss.Item{}
 	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
@@ -248,7 +242,7 @@ func (a *Application) htmlCategoryTemplate(w http.ResponseWriter, r *http.Reques
 	a.htmlTemplate(w, r, a.getFeedCategoryTitles(lang, category, 15), "html/index.html")
 }
 
-func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, result Result, tString string) {
+func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, result service.Result, tString string) {
 	t, err := template.ParseFiles(tString)
 	if err != nil {
 		log.Printf("Template gave: %s", err)
@@ -266,11 +260,11 @@ func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, resul
 	}
 }
 
-func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int) Result {
+func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int) service.Result {
 	for i := range items {
 		items[i].Category.StyleName = items[i].Category.Name
 	}
-	result := Result{}
+	result := service.Result{}
 	result.Items = a.AddCategoryEnNames(items)
 	result.Description = a.addDescription(language)
 	result.Lang = language
