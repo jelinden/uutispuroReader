@@ -249,6 +249,9 @@ func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, resul
 	}
 	cangzip := strings.Index(r.Header.Get("Accept-Encoding"), "gzip") > -1
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    w.Header().Set("Expires", "-1")
+    w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+    w.Header().Set("Pragma", "no-cache")
 	if cangzip {
 		gw := gzip.NewWriter(w)
 		w.Header().Set("Vary", "Accept-Encoding")
