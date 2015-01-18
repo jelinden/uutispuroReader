@@ -7,7 +7,7 @@ h1 {
     margin: 0px;
     margin-top: 20px;
     margin-left: 5px; 
-    margin-bottom: 40px;
+    margin-bottom: 10px;
     padding: 0px;
     font-weight: 500;
     line-height: 1.1;
@@ -41,7 +41,7 @@ li {
     margin: 10px;
     float:left;
 }
-#adds{display:inline-block;min-width:400px;max-width:500px;height:75px;max-height:75px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
+#adds{display:inline-block;min-width:400px;max-width:600px;height:80px;max-height:80px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
 @media screen and (max-width: 480px) {
     .img {
         display: none !important;
