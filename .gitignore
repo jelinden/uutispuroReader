@@ -2,3 +2,4 @@ webServer
 .DS_Store
 uutispuroReader
 test.log
+js/.module-cache

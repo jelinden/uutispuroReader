@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8" />
-        <title>Uusimmat uutiset - Uutispuro</title>
+        <title>{{.PageTitle}}</title>
         <link rel="apple-touch-icon" sizes="57x57" href="/img/apple-touch-icon-57x57.png">
         <link rel="apple-touch-icon" sizes="114x114" href="/img/apple-touch-icon-114x114.png">
         <link rel="apple-touch-icon" sizes="72x72" href="/img/apple-touch-icon-72x72.png">
@@ -21,7 +21,7 @@
         <meta name="msapplication-TileImage" content="/img/mstile-144x144.png">
         <meta name="viewport" content="width=device-width, user-scalable=yes">
         <meta name="description" content="{{.Description}}"/>
-        <style>a,a:visited,a:hover{color:#428bca;text-decoration:none !important;}.category a,.category a:visited{color:white;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;margin:0px !important;}</style>
+        <style>a,a:visited,a:hover{color:#428bca;text-decoration:none !important;}.category a,.category a:visited{color:white;}body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;margin:0px !important;}.link,.source,.category{line-height:1.4;}</style>
         <link media="only screen and (max-device-width: 481px)" href="/uutispuro-small-19.css" type="text/css" rel="stylesheet">
         <link media="only screen and (min-device-width: 481px) and (max-device-width: 1024px)" href="/uutispuro-m-19.css" type="text/css" rel="stylesheet">
         <link media="screen and (min-device-width: 1025px)" href="/uutispuro-19.css" type="text/css" rel="stylesheet">
@@ -59,23 +59,10 @@
             {{end}}          
         </div>
         <div id="error"></div>
+		<div id="example"></div>
     </body>
-    <script>
-    if (document.createStyleSheet) {
-        document.createStyleSheet('//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css');
-    } else {
-      var bootstrap = function() {
-        var l = document.createElement('link'); l.rel = 'stylesheet';
-        l.href = '//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css';
-        var h = document.getElementsByTagName('head')[0]; h.parentNode.insertBefore(l, h);
-      };
-      var raf = requestAnimationFrame || mozRequestAnimationFrame ||
-          webkitRequestAnimationFrame || msRequestAnimationFrame;
-      if (raf) raf(bootstrap);
-      else window.addEventListener('load', bootstrap);
-    }
-    </script>
-    <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-dateFormat/1.0/jquery.dateFormat.min.js"></script>
-    <script src="/uutispuro-18.js"></script>
+    
+	<script src="http://fb.me/react-0.12.2.js"></script>
+	<script type="application/javascript" src="/js/moment.min.js"></script>
+	<script type="application/javascript" src="/uutispuro-19.js"></script>
 </html>

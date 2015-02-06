@@ -1,8 +1,9 @@
 package service
 
 import (
-    "github.com/jelinden/rssFetcher/rss"
+	"github.com/jelinden/rssFetcher/rss"
 )
+
 var Conf struct {
 	MongoUrl string
 }
@@ -10,5 +11,6 @@ var Conf struct {
 type Result struct {
 	Items       []rss.Item
 	Description string
+	PageTitle   string
 	Lang        int
 }

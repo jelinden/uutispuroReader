@@ -9,6 +9,7 @@ import (
 	"github.com/jelinden/rssFetcher/rss"
 	"github.com/jelinden/uutispuroReader/service"
 	"gopkg.in/mgo.v2/bson"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-    "html/template"
 )
 
 type Application struct {
@@ -60,23 +60,23 @@ func (a *Application) WsHandler(ws *websocket.Conn) {
 			log.Printf("client closed connection %s\n", err)
 			break
 		}
-        attrs := strings.Split(ws.Request().RequestURI, "/")
+		attrs := strings.Split(ws.Request().RequestURI, "/")
 		//log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI, len(attrs))
-        if(len(attrs) > 4) {
-            if (strings.EqualFold(attrs[2], "fi") && strings.EqualFold(attrs[3], "category")) {
-                a.fetchRssItemsByCategory(ws, 1, attrs[4])
-            } else if (strings.EqualFold(attrs[2], "en") && strings.EqualFold(attrs[3], "category")) {
-                a.fetchRssItemsByCategory(ws, 2, attrs[4])
-            }
-        } else if strings.HasPrefix(string(msg[:n]), "c/") {
+		if len(attrs) > 4 {
+			if strings.EqualFold(attrs[2], "fi") && strings.EqualFold(attrs[3], "category") {
+				a.fetchRssItemsByCategory(ws, 1, attrs[4])
+			} else if strings.EqualFold(attrs[2], "en") && strings.EqualFold(attrs[3], "category") {
+				a.fetchRssItemsByCategory(ws, 2, attrs[4])
+			}
+		} else if strings.HasPrefix(string(msg[:n]), "c/") {
 			a.saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
 		} else if strings.HasPrefix(string(msg[:n]), "l/") {
 			a.saveLike(strings.Replace(string(msg[:n]), "l/", "", -1))
 		} else if strings.HasPrefix(string(msg[:n]), "u/") {
 			a.saveUnlike(strings.Replace(string(msg[:n]), "u/", "", -1))
-		} else if (strings.HasSuffix(ws.Request().RequestURI, "/fi/") || strings.HasSuffix(ws.Request().RequestURI, "/fi")) {
+		} else if strings.HasSuffix(ws.Request().RequestURI, "/fi/") || strings.HasSuffix(ws.Request().RequestURI, "/fi") {
 			a.fetchRssItems(ws, 1)
-		} else if (strings.HasSuffix(ws.Request().RequestURI, "/en/") || strings.HasSuffix(ws.Request().RequestURI, "/en")) {
+		} else if strings.HasSuffix(ws.Request().RequestURI, "/en/") || strings.HasSuffix(ws.Request().RequestURI, "/en") {
 			a.fetchRssItems(ws, 2)
 		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
 			a.fetchRssItems(ws, 2)
@@ -94,7 +94,7 @@ func (a *Application) getFeedTitles(language int, limit int) service.Result {
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
-	return a.addCategoryShowNamesAndMetaData(result, language)
+	return a.addCategoryShowNamesAndMetaData(result, language, "")
 }
 
 func (a *Application) getFeedCategoryTitles(language int, category string, limit int) service.Result {
@@ -102,14 +102,14 @@ func (a *Application) getFeedCategoryTitles(language int, category string, limit
 	s := a.Sessions.Mongo.Clone()
 	c := s.DB("uutispuro").C("rss")
 	err := c.Find(
-                bson.M{"language": language, "category.name": strings.ToUpper(category[0:1]) + category[1:]}, 
-            ).
-            Sort("-date").
-            Limit(limit).All(&result)
+		bson.M{"language": language, "category.name": strings.ToUpper(category[0:1]) + category[1:]},
+	).
+		Sort("-date").
+		Limit(limit).All(&result)
 	if err != nil {
 		fmt.Println("Fatal error " + err.Error())
 	}
-	return a.addCategoryShowNamesAndMetaData(result, language)
+	return a.addCategoryShowNamesAndMetaData(result, language, category)
 }
 
 func (a *Application) saveClick(id string) {
@@ -163,19 +163,19 @@ func (a *Application) fetchRssItemsByCategory(ws *websocket.Conn, lang int, cate
 func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 	//pageNumber := a.getPage(r)
 	//log.Println(r.RemoteAddr, r.RequestURI, pageNumber)
-    attrs := strings.Split(r.URL.Path, "/")
-    var content []byte = nil
-    if(len(attrs) > 3) {
-        if (strings.EqualFold(attrs[1], "fi") && strings.EqualFold(attrs[2], "category")) {
-            a.htmlCategoryTemplate(w, r, 1, attrs[3]) 
-        } else if (strings.EqualFold(attrs[1], "en") && strings.EqualFold(attrs[2], "category")) {
-            a.htmlCategoryTemplate(w, r, 2, attrs[3]) 
-        }
-    } else if strings.EqualFold(r.RequestURI, "/") {
+	attrs := strings.Split(r.URL.Path, "/")
+	var content []byte = nil
+	if len(attrs) > 3 {
+		if strings.EqualFold(attrs[1], "fi") && strings.EqualFold(attrs[2], "category") {
+			a.htmlCategoryTemplate(w, r, 1, attrs[3])
+		} else if strings.EqualFold(attrs[1], "en") && strings.EqualFold(attrs[2], "category") {
+			a.htmlCategoryTemplate(w, r, 2, attrs[3])
+		}
+	} else if strings.EqualFold(r.RequestURI, "/") {
 		http.Redirect(w, r, "/en/", 301)
-	} else if (strings.HasPrefix(r.RequestURI, "/fi") || strings.HasPrefix(r.RequestURI, "/fi/")) {
+	} else if strings.HasPrefix(r.RequestURI, "/fi") || strings.HasPrefix(r.RequestURI, "/fi/") {
 		a.htmlTemplateFi(w, r)
-	} else if (strings.HasPrefix(r.RequestURI, "/en") || strings.HasPrefix(r.RequestURI, "/en/")) {
+	} else if strings.HasPrefix(r.RequestURI, "/en") || strings.HasPrefix(r.RequestURI, "/en/") {
 		a.htmlTemplateEn(w, r)
 	} else if strings.HasSuffix(r.RequestURI, ".css") {
 		w.Header().Set("Content-Type", "text/css; charset=utf-8")
@@ -186,7 +186,7 @@ func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript")
 		w.Header().Set("Content-Encoding", "gzip")
 		a.setHttpCacheHeaders(w.Header())
-		content = a.openFileGzipped(r.RequestURI[strings.LastIndex(r.RequestURI, "/")+1:len(r.RequestURI)])
+		content = a.openFileGzipped("js" + r.RequestURI[strings.LastIndex(r.RequestURI, "/"):len(r.RequestURI)])
 	} else if strings.HasSuffix(r.RequestURI, "/favicon.ico") {
 		a.setHttpCacheHeaders(w.Header())
 		content = a.openFileGzipped("img/favicon.ico")
@@ -211,6 +211,7 @@ func (a *Application) setHttpCacheHeaders(header http.Header) {
 }
 
 func (a *Application) openFile(fileName string) []byte {
+	fmt.Println(fileName)
 	content, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		log.Println("Could not open file.", err)
@@ -249,9 +250,9 @@ func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, resul
 	}
 	cangzip := strings.Index(r.Header.Get("Accept-Encoding"), "gzip") > -1
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-    w.Header().Set("Expires", "-1")
-    w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
-    w.Header().Set("Pragma", "no-cache")
+	w.Header().Set("Expires", "-1")
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	w.Header().Set("Pragma", "no-cache")
 	if cangzip {
 		gw := gzip.NewWriter(w)
 		w.Header().Set("Vary", "Accept-Encoding")
@@ -263,64 +264,98 @@ func (a *Application) htmlTemplate(w http.ResponseWriter, r *http.Request, resul
 	}
 }
 
-func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int) service.Result {
+func (a *Application) addCategoryShowNamesAndMetaData(items []rss.Item, language int, category string) service.Result {
 	for i := range items {
 		items[i].Category.StyleName = items[i].Category.Name
 	}
 	result := service.Result{}
 	result.Items = a.AddCategoryEnNames(items)
-	result.Description = a.addDescription(language)
+	result.Description = a.addDescription(language, category)
+	result.PageTitle = a.addPageTitle(language, category)
 	result.Lang = language
 	return result
 }
 
-func (a *Application) addDescription(language int) string {
-	if language == 1 {
-		return "Uusimmat uutiset yhdestä lähteestä - www.uutispuro.fi"
-	} else if language == 2 {
+func (a *Application) addDescription(language int, category string) string {
+	if category == "" {
+		if language == 1 {
+			return "Uusimmat uutiset yhdestä lähteestä - www.uutispuro.fi"
+		} else if language == 2 {
+			return "News titles from one source - www.uutispuro.fi"
+		}
 		return "News titles from one source - www.uutispuro.fi"
+	} else {
+		if language == 1 {
+			return category + " - www.uutispuro.fi"
+		} else if language == 2 {
+			return a.getEnCategoryName(category) + " - www.uutispuro.fi"
+		}
+		return a.getEnCategoryName(category) + " - www.uutispuro.fi"
 	}
-	return "News titles from one source - www.uutispuro.fi"
+}
+
+func (a *Application) addPageTitle(language int, category string) string {
+	if category == "" {
+		if language == 1 {
+			return "Uusimmat uutiset - Uutispuro"
+		} else if language == 2 {
+			return "News titles - Uutispuro"
+		}
+		return "News titles - Uutispuro"
+	} else {
+		if language == 1 {
+			return category + " - Uutispuro"
+		} else if language == 2 {
+			return a.getEnCategoryName(category) + " - Uutispuro"
+		}
+		return a.getEnCategoryName(category) + " - Uutispuro"
+	}
 }
 
 func (a *Application) AddCategoryEnNames(items []rss.Item) []rss.Item {
 	for i := range items {
 		cat := items[i].Category.Name
-		if cat == "Digi" {
-			items[i].Category.EnName = "Tech"
-		} else if cat == "Elokuvat" {
-			items[i].Category.EnName = "Movies"
-		} else if cat == "Koti" {
-			items[i].Category.EnName = "Home"
-		} else if cat == "Kotimaa" {
-			items[i].Category.EnName = "Domestic"
-		} else if cat == "Kulttuuri" {
-			items[i].Category.EnName = "Culture"
-		} else if cat == "Matkustus" {
-			items[i].Category.EnName = "Travel"
-		} else if cat == "Pelit" {
-			items[i].Category.EnName = "Games"
-		} else if cat == "Ruoka" {
-			items[i].Category.EnName = "Food"
-		} else if cat == "Talous" {
-			items[i].Category.EnName = "Economy"
-		} else if cat == "Terveys" {
-			items[i].Category.EnName = "Health"
-		} else if cat == "Tiede" {
-			items[i].Category.EnName = "Science"
-		} else if cat == "Ulkomaat" {
-			items[i].Category.EnName = "Foreign"
-		} else if cat == "Urheilu" {
-			items[i].Category.EnName = "Sports"
-		} else if cat == "Viihde" {
-			items[i].Category.EnName = "Entertainment"
-		} else if cat == "Blogit" {
-			items[i].Category.EnName = "Blogs"
-		} else if cat == "Naiset" {
-			items[i].Category.EnName = "Women"
-		}
+		items[i].Category.EnName = a.getEnCategoryName(cat)
 	}
 	return items
+}
+
+func (a *Application) getEnCategoryName(cat string) string {
+	if cat == "Digi" {
+		return "Tech"
+	} else if cat == "Elokuvat" {
+		return "Movies"
+	} else if cat == "Koti" {
+		return "Home"
+	} else if cat == "Kotimaa" {
+		return "Domestic"
+	} else if cat == "Kulttuuri" {
+		return "Culture"
+	} else if cat == "Matkustus" {
+		return "Travel"
+	} else if cat == "Pelit" {
+		return "Games"
+	} else if cat == "Ruoka" {
+		return "Food"
+	} else if cat == "Talous" {
+		return "Economy"
+	} else if cat == "Terveys" {
+		return "Health"
+	} else if cat == "Tiede" {
+		return "Science"
+	} else if cat == "Ulkomaat" {
+		return "Foreign"
+	} else if cat == "Urheilu" {
+		return "Sports"
+	} else if cat == "Viihde" {
+		return "Entertainment"
+	} else if cat == "Blogit" {
+		return "Blogs"
+	} else if cat == "Naiset" {
+		return "Women"
+	} else {
+		return ""
+	}
 }
 
 func (a *Application) getPage(req *http.Request) int {
