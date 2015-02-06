@@ -19,6 +19,8 @@ import (
 	"time"
 )
 
+var newsToBefetched = 150
+
 type Application struct {
 	Sessions *service.Sessions
 }
@@ -143,7 +145,7 @@ func (a *Application) saveUnlike(id string) {
 }
 
 func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
-	doc := map[string]interface{}{"d": a.getFeedTitles(lang, 45)}
+	doc := map[string]interface{}{"d": a.getFeedTitles(lang, newsToBefetched)}
 	if data, err := json.Marshal(doc); err != nil {
 		log.Printf("Error marshalling json: %v", err)
 	} else {
@@ -152,7 +154,7 @@ func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
 }
 
 func (a *Application) fetchRssItemsByCategory(ws *websocket.Conn, lang int, category string) {
-	doc := map[string]interface{}{"d": a.getFeedCategoryTitles(lang, category, 45)}
+	doc := map[string]interface{}{"d": a.getFeedCategoryTitles(lang, category, newsToBefetched)}
 	if data, err := json.Marshal(doc); err != nil {
 		log.Printf("Error marshalling json: %v", err)
 	} else {
