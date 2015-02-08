@@ -25,7 +25,7 @@ ul {
     padding-left: 0px;
     padding-right: 3px;
     margin-left: 5px;
-    margin-right: 5px;
+    margin-right: 0px;
     height: 117px;
     background-color:#fafafa;
     float:left;
@@ -41,7 +41,7 @@ li {
     height:20px;
     margin: 10px;
 }
-#adds{display:inline-block;min-width:400px;max-width:600px;height:80px;max-height:80px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
+#adds{display:inline-block;min-width:400px;max-width:600px;height:83px;max-height:83px;margin-left:10px;margin-top:2px;margin-bottom:5px;overflow:hidden;}
 @media screen and (max-width: 480px) {
     .img {
         display: none !important;
