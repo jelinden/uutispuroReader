@@ -2,12 +2,13 @@ package main
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/websocket"
 	"compress/gzip"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/jelinden/rssFetcher/rss"
 	"github.com/jelinden/uutispuroReader/service"
+	"github.com/jelinden/uutispuroReader/util"
 	"gopkg.in/mgo.v2/bson"
 	"html/template"
 	"io/ioutil"
@@ -22,7 +23,8 @@ import (
 var newsToBefetched = 150
 
 type Application struct {
-	Sessions *service.Sessions
+	Sessions   *service.Sessions
+	CookieUtil *util.CookieUtil
 }
 
 func NewApplication() *Application {
@@ -31,6 +33,7 @@ func NewApplication() *Application {
 
 func (a *Application) Init() {
 	a.Sessions = service.NewSessions()
+	a.CookieUtil = util.NewCookieUtil()
 	a.Sessions.Init()
 }
 
@@ -44,48 +47,69 @@ func main() {
 	defer app.Close()
 
 	fmt.Println("adding routes")
-	http.Handle("/websocket/", websocket.Handler(app.WsHandler))
-	http.HandleFunc("/", app.rootHandler)
-	fmt.Println("starting web server")
-	http.ListenAndServe(":9100", nil)
-}
+	r := gin.Default()
+	r.LoadHTMLTemplates("templates/*")
+	r.Static("/assets/", "./assets")
 
-func (a *Application) WsHandler(ws *websocket.Conn) {
-	defer func() {
-		log.Printf(" Connection closed\n")
-		ws.Close()
-	}()
-	msg := make([]byte, 1024)
-	for {
-		n, err := ws.Read(msg)
+	r.GET("/", func(c *gin.Context) {
+		lang, err := c.Request.Cookie("uutispuroLang")
 		if err != nil {
-			log.Printf("client closed connection %s\n", err)
-			break
+			log.Println(err)
+			c.Redirect(302, "/en/")
+		} else if lang.Value == "fi" {
+			c.Redirect(302, "/fi/")
+		} else {
+			c.Redirect(302, "/en/")
 		}
-		attrs := strings.Split(ws.Request().RequestURI, "/")
-		//log.Println(ws.Request().RemoteAddr, ws.Request().RequestURI, len(attrs))
-		if len(attrs) > 4 {
-			if strings.EqualFold(attrs[2], "fi") && strings.EqualFold(attrs[3], "category") {
-				a.fetchRssItemsByCategory(ws, 1, attrs[4])
-			} else if strings.EqualFold(attrs[2], "en") && strings.EqualFold(attrs[3], "category") {
-				a.fetchRssItemsByCategory(ws, 2, attrs[4])
-			}
-		} else if strings.HasPrefix(string(msg[:n]), "c/") {
-			a.saveClick(strings.Replace(string(msg[:n]), "c/", "", -1))
-		} else if strings.HasPrefix(string(msg[:n]), "l/") {
-			a.saveLike(strings.Replace(string(msg[:n]), "l/", "", -1))
-		} else if strings.HasPrefix(string(msg[:n]), "u/") {
-			a.saveUnlike(strings.Replace(string(msg[:n]), "u/", "", -1))
-		} else if strings.HasSuffix(ws.Request().RequestURI, "/fi/") || strings.HasSuffix(ws.Request().RequestURI, "/fi") {
-			a.fetchRssItems(ws, 1)
-		} else if strings.HasSuffix(ws.Request().RequestURI, "/en/") || strings.HasSuffix(ws.Request().RequestURI, "/en") {
-			a.fetchRssItems(ws, 2)
-		} else if strings.EqualFold(ws.Request().RequestURI, "/websocket/") {
-			a.fetchRssItems(ws, 2)
+	})
+	r.GET("/fi/", func(c *gin.Context) {
+		app.CookieUtil.SetCookie("uutispuroLang", "fi", c)
+		obj := app.getFeedTitles(1, 15)
+		c.HTML(200, "index.html", obj)
+	})
+	r.GET("/en/", func(c *gin.Context) {
+		app.CookieUtil.SetCookie("uutispuroLang", "en", c)
+		obj := app.getFeedTitles(2, 15)
+		c.HTML(200, "index.html", obj)
+	})
+	r.GET("/fi/ws", func(c *gin.Context) {
+		c.JSON(200, app.fetchRssItems(1))
+	})
+	r.GET("/en/ws", func(c *gin.Context) {
+		c.JSON(200, app.fetchRssItems(2))
+	})
+	r.GET("/c/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		app.saveClick(id)
+	})
+	r.GET("/l/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		app.saveLike(id)
+	})
+	r.GET("/u/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		app.saveUnlike(id)
+	})
+	r.GET("/category/:cat/:lang/ws", func(c *gin.Context) {
+		lang := c.Params.ByName("lang")
+		cat := c.Params.ByName("cat")
+		if lang == "en" {
+			c.JSON(200, app.fetchRssItemsByCategory(2, cat))
+		} else {
+			c.JSON(200, app.fetchRssItemsByCategory(1, cat))
 		}
-	}
-	log.Printf(" => closing connection\n")
-	ws.Close()
+	})
+
+	r.GET("/category/:cat/:lang", func(c *gin.Context) {
+		lang := c.Params.ByName("lang")
+		obj := service.Result{}
+		cat := c.Params.ByName("cat")
+		obj = app.getFeedCategoryTitles(app.langAsInt(lang), cat, 15)
+		c.HTML(200, "index.html", obj)
+	})
+
+	fmt.Println("starting web server")
+	r.Run(":9100")
 }
 
 func (a *Application) getFeedTitles(language int, limit int) service.Result {
@@ -144,22 +168,12 @@ func (a *Application) saveUnlike(id string) {
 	}
 }
 
-func (a *Application) fetchRssItems(ws *websocket.Conn, lang int) {
-	doc := map[string]interface{}{"d": a.getFeedTitles(lang, newsToBefetched)}
-	if data, err := json.Marshal(doc); err != nil {
-		log.Printf("Error marshalling json: %v", err)
-	} else {
-		ws.Write(data)
-	}
+func (a *Application) fetchRssItems(lang int) map[string]interface{} {
+	return map[string]interface{}{"d": a.getFeedTitles(lang, newsToBefetched)}
 }
 
-func (a *Application) fetchRssItemsByCategory(ws *websocket.Conn, lang int, category string) {
-	doc := map[string]interface{}{"d": a.getFeedCategoryTitles(lang, category, newsToBefetched)}
-	if data, err := json.Marshal(doc); err != nil {
-		log.Printf("Error marshalling json: %v", err)
-	} else {
-		ws.Write(data)
-	}
+func (a *Application) fetchRssItemsByCategory(lang int, category string) map[string]interface{} {
+	return map[string]interface{}{"d": a.getFeedCategoryTitles(lang, category, newsToBefetched)}
 }
 
 func (a *Application) rootHandler(w http.ResponseWriter, r *http.Request) {
@@ -385,4 +399,12 @@ func (a *Application) parseQueryValues(req *http.Request, value string) int {
 		return int(v)
 	}
 	return 0
+}
+
+func (a *Application) langAsInt(lang string) int {
+	if lang == "en" {
+		return 2
+	} else {
+		return 1
+	}
 }
